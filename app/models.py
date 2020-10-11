@@ -1,0 +1,138 @@
+from app import db
+from datetime import datetime
+
+
+class Cargo(db.Model):
+    __tablename__ = 'cargos'
+
+    """ Свои поля """
+    cargo_id = db.Column(db.Integer, primary_key=True)
+    nomenclature = db.Column(db.String(64), nullable=False)
+    weight = db.Column(db.Float, nullable=False)
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
+
+    def __repr__(self):
+        return "<Order {} (order number: {}>".format(self.nomenclature, self.cargo_id)
+
+    # Преобразование списка объектов в словарь
+    @staticmethod
+    def to_dict_list(list_data):
+        data = [
+            {
+                'id': data.cargo_id,
+                'nomenclature': data.nomenclature,
+                'weight': data.weight,
+            }
+            for data in list_data]
+        return data
+
+
+class Application(db.Model):
+    __tablename__ = 'applications'
+
+    """ Свои поля """
+    application_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
+
+    """ Маршрут """
+    delivery_route = db.Column(db.Integer, db.ForeignKey('routes.route_id'))
+    route = db.relationship('Route', backref='application', uselist=False)
+
+    """ Оплата """
+    payment_detail = db.Column(db.Integer, db.ForeignKey('payments.payment_id'))
+    payment = db.relationship('Payment', backref='application', uselist=False)
+
+    """ Поле cargos - все грузы, которое имеет self приложение (Абстракция от SQLAlchemy)"""
+    cargos = db.relationship('Cargo', backref='application', lazy='dynamic')
+
+    def __repr__(self):
+        return "<Application {} (app number: {}>".format(self.name, self.application_id)
+
+    # Преобразование объекта в словарь
+    def to_dict(self, JOIN):
+        if JOIN:
+            data = {
+                'id': self.application_id,
+                'name': self.name,
+                'conclusion date': self.conclusion_date,
+                'route': Route.query.get(self.delivery_route).to_dict(),
+                'payment': Payment.query.get(self.payment_detail).to_dict()
+            }
+        else:
+            data = {
+                'id': self.application_id,
+                'name': self.name,
+                'conclusion date': self.conclusion_date,
+                'route': self.delivery_route,
+                'payment': self.payment_detail
+            }
+        return data
+
+    # Преобразование списка объектов в словарь
+    @staticmethod
+    def to_dict_list(list_data):
+        data = [
+            {
+                'id': data.application_id,
+                'name': data.name,
+                'conclusion date': data.conclusion_date,
+                'route': data.delivery_route,
+                'payment': data.payment_detail
+            }
+            for data in list_data]
+        return data
+
+    # Извлечение данных в объект типа Application
+    def from_dict(self, data):
+        for field in ['name', 'conclusion_date', 'delivery_route', 'payment_detail']:
+            if field in data:
+                setattr(self, field, data[field])
+
+
+class Route(db.Model):
+    __tablename__ = 'routes'
+
+    route_id = db.Column(db.Integer, primary_key=True)
+    delivery_address = db.Column(db.String(128), nullable=False)
+    shipping_address = db.Column(db.String(128), nullable=False)
+    distance = db.Column(db.Float, nullable=True)
+    estimated_time = db.Column(db.Integer, nullable=True)
+
+    # def __init__(self, delivery_address, shipping_address):
+    #     self.delivery_address = delivery_address
+    #     self.shipping_address = shipping_address
+
+    def __repr__(self):
+        return "<Route {} (route number: {}>".format(self.delivery_address, self.route_id)
+
+    def to_dict(self):
+        data = {
+            'id': self.route_id,
+            'delivery_address': self.delivery_address,
+            'shipping_address': self.shipping_address,
+            'distance': self.distance,
+            'estimated_time': self.estimated_time
+        }
+        return data
+
+
+class Payment(db.Model):
+    __tablename__ = 'payments'
+
+    payment_id = db.Column(db.Integer, primary_key=True)
+    cost = db.Column(db.Numeric(10, 2), nullable=False)
+    payment_type = db.Column(db.String(32), nullable=False)
+    short_change = db.Column(db.Boolean, nullable=True)
+
+    def __repr__(self):
+        return "<Payment {}>".format(self.payment_id)
+
+    def to_dict(self):
+        data = {
+            'id': self.payment_id,
+            'cost': float(self.cost),
+            'payment_type': self.payment_type,
+            'short_change': self.short_change
+        }
+        return data
