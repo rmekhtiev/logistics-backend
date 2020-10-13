@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+
+{%endblock%}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>Добавление записи</h1>
+    <form method="post" action="/create_order">
+        <input type="text" name="title" id="title" class="form-control" placeholder="Название заказа"><br>
+        <input type="text" name="sum" id="sum" class="form-control" placeholder="Сумма"><br>
+        <input type="text" name="date" id="date" class="form-control" placeholder="Дата (необязательно)"><br>
+        <input type="submit" class="btn btn-success" value="Отправить"><br>
+    </form>
+</div>
+{%endblock%}
