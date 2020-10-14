@@ -1,5 +1,6 @@
 from app import db
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSON
 
 
 class Cargo(db.Model):
@@ -44,7 +45,15 @@ class Application(db.Model):
     payment = db.relationship('Payment', backref='application', uselist=False)
 
     """ Поле cargos - все грузы, которое имеет self приложение (Абстракция от SQLAlchemy)"""
-    cargos = db.relationship('Cargo', backref='application', lazy='dynamic')
+    cargos = db.relationship('Cargo', backref='applications', lazy='dynamic')
+
+    """ Грузоотправитель """
+    shipper_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
+    shipper = db.relationship('Contact', backref='applications', lazy='dynamic')
+
+    """ Грузополучатель """
+    consignee_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
+    consignee = db.relationship('Contact', backref='applications', lazy='dynamic')
 
     def __repr__(self):
         return "<Application {} (app number: {}>".format(self.name, self.application_id)
@@ -136,3 +145,93 @@ class Payment(db.Model):
             'short_change': self.short_change
         }
         return data
+
+
+class Contract(db.Model):
+    __tablename__ = 'contracts'
+
+    contract_id = db.Column(db.Integer, primary_key=True)
+    conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
+
+    """Реквизиты"""
+    bank_name = db.Column(db.String(64), nullable=False)
+    BIK = db.Column(db.String(9), nullable=False)
+    INN = db.Column(db.String(10), nullable=False)
+    KPP = db.Column(db.String(9), nullable=False)
+    KS = db.Column(db.String(20), nullable=False)
+    bank_account = db.Column(db.String(20), nullable=False)
+
+    """Заявка"""
+    application_num = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
+    application = db.relationship('Application', backref='contracts', lazy='dynamic')
+
+    """Клиент"""
+    client_detail = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
+    client = db.relationship('Client', backref='contract', uselist=False)
+
+    def __repr__(self):
+        return "<Contract {}>".format(self.contract_id)
+
+
+class Client(db.Models):
+    __tablename__ = 'clients'
+
+    client_id = db.Column(db.Integer, primary_key=True)
+    passport_id = db.Column(db.Integer, nullable=False)
+    passport_series = db.Column(db.Integer, nullable=False)
+    first_name = db.Column(db.String(32), nullable=False)
+    last_name = db.Column(db.String(32), nullable=False)
+    middle_name = db.Column(db.String(32))
+    email = db.Column(db.String(32))
+    phone = db.Column(db.String(11))
+
+    def __repr__(self):
+        return "<Client {}>".format(self.client_id)
+
+
+class Driver(db.Model):
+    __tablename__ = 'drivers'
+
+    driver_id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(32), nullable=False)
+    last_name = db.Column(db.String(32), nullable=False)
+    middle_name = db.Column(db.String(32))
+    categories = db.Column(JSON)
+
+    """ Заявка """
+    application_detail = db.Column(db.Integer, db.ForeignKey('application.application_id'))
+    application = db.relationship('Application', backref='drivers', lazy='dynamic')
+
+    def __repr__(self):
+        return "<Driver {}>".format(self.driver_id)
+
+
+class Contact(db.Model):
+    __tablename__ = 'contacts'
+
+    contact_id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(32), nullable=False)
+    last_name = db.Column(db.String(32), nullable=False)
+    middle_name = db.Column(db.String(32))
+    position = db.Column(db.String(32))
+    organization = db.Column(db.String(64))
+
+    def __repr__(self):
+        return "<Contact`` {}>".format(self.contact_id)
+
+
+class Car(db.Model):
+    __tablename__ = 'cars'
+
+    car_id = db.Column(db.Integer, primary_key=True)
+    weight = db.Column(db.Float, nullable=False)
+    volume = db.Column(db.Float, nullable=False)
+    model = db.Column(db.String(64), nullable=False)
+    category = db.Column(db.String(1), nullable=False)
+
+    """ Заявка """
+    application_detail = db.Column(db.Integer, db.ForeignKey('application.application_id'))
+    application = db.relationship('Application', backref='drivers', lazy='dynamic')
+
+    def __repr__(self):
+        return "<Car`` {}>".format(self.car_id)
