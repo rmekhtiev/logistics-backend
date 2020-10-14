@@ -173,7 +173,7 @@ class Contract(db.Model):
         return "<Contract {}>".format(self.contract_id)
 
 
-class Client(db.Models):
+class Client(db.Model):
     __tablename__ = 'clients'
 
     client_id = db.Column(db.Integer, primary_key=True)
