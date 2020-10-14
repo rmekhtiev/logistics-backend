@@ -199,7 +199,7 @@ class Driver(db.Model):
     categories = db.Column(JSON)
 
     """ Заявка """
-    application_detail = db.Column(db.Integer, db.ForeignKey('application.application_id'))
+    application_detail = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
     application = db.relationship('Application', backref='drivers', lazy='dynamic')
 
     def __repr__(self):
@@ -230,7 +230,7 @@ class Car(db.Model):
     category = db.Column(db.String(1), nullable=False)
 
     """ Заявка """
-    application_detail = db.Column(db.Integer, db.ForeignKey('application.application_id'))
+    application_detail = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
     application = db.relationship('Application', backref='drivers', lazy='dynamic')
 
     def __repr__(self):
