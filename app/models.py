@@ -1,6 +1,21 @@
 from app import db
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, BOOLEAN
+
+
+""" Смежная таблица многие-ко-многим (applications - cars) """
+cars_applications = db.Table('cars_applications',
+                             db.Column('car_id', db.Integer, db.ForeignKey('cars.car_id')),
+                             db.Column('application_id', db.Integer, db.ForeignKey('applications.application_id')),
+                             db.Column('cars_applications_id', db.Integer, primary_key=True)
+                             )
+
+""" Смежная таблица многие-ко-многим (applications - drivers) """
+drivers_applications = db.Table('drivers_applications',
+                                db.Column('driver_id', db.Integer, db.ForeignKey('drivers.driver_id')),
+                                db.Column('application_id', db.Integer, db.ForeignKey('applications.application_id')),
+                                db.Column('drivers_applications_id', db.Integer, primary_key=True)
+                                )
 
 
 class Cargo(db.Model):
@@ -35,6 +50,7 @@ class Application(db.Model):
     application_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
+    is_finished = db.Column(db.Boolean, default=False)
 
     """ Маршрут """
     delivery_route = db.Column(db.Integer, db.ForeignKey('routes.route_id'))
@@ -54,6 +70,12 @@ class Application(db.Model):
     """ Грузополучатель """
     consignee_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
     consignee = db.relationship('Contact', backref='applications', lazy='dynamic')
+
+    """ Отношение многие-ко-многим с сущностью Cars"""
+    cars = db.relationship('Car', secondary=cars_applications, backref='applications', lazy='dynamic')
+
+    """ Отношение многие-ко-многим с сущностью Drivers"""
+    drivers = db.relationship('Driver', secondary=drivers_applications, backref='applications', lazy='dynamic')
 
     def __repr__(self):
         return "<Application {} (app number: {}>".format(self.name, self.application_id)
@@ -197,10 +219,7 @@ class Driver(db.Model):
     last_name = db.Column(db.String(32), nullable=False)
     middle_name = db.Column(db.String(32))
     categories = db.Column(JSON)
-
-    """ Заявка """
-    application_detail = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
-    application = db.relationship('Application', backref='drivers', lazy='dynamic')
+    is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return "<Driver {}>".format(self.driver_id)
@@ -228,10 +247,7 @@ class Car(db.Model):
     volume = db.Column(db.Float, nullable=False)
     model = db.Column(db.String(64), nullable=False)
     category = db.Column(db.String(1), nullable=False)
-
-    """ Заявка """
-    application_detail = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
-    application = db.relationship('Application', backref='drivers', lazy='dynamic')
+    is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return "<Car`` {}>".format(self.car_id)
