@@ -1,6 +1,6 @@
 from app import db
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON, BOOLEAN
+from sqlalchemy.dialects.postgresql import JSON, BOOLEAN, ARRAY
 
 
 """ Смежная таблица многие-ко-многим (applications - cars) """
@@ -65,11 +65,9 @@ class Application(db.Model):
 
     """ Грузоотправитель """
     shipper_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
-    shipper = db.relationship('Contact', foreign_keys=[shipper_id])
 
     """ Грузополучатель """
-    consignee_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
-    consignee = db.relationship('Contact', foreign_keys=[consignee_id])
+    receiver_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
 
     """ Отношение многие-ко-многим с сущностью Cars"""
     cars = db.relationship('Car', secondary=cars_applications, backref='applications', lazy='dynamic')
@@ -220,7 +218,7 @@ class Driver(db.Model):
     first_name = db.Column(db.String(32), nullable=False)
     last_name = db.Column(db.String(32), nullable=False)
     middle_name = db.Column(db.String(32))
-    categories = db.Column(JSON)
+    categories = db.Column(ARRAY(db.String()))
     is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
@@ -236,6 +234,11 @@ class Contact(db.Model):
     middle_name = db.Column(db.String(32))
     position = db.Column(db.String(32))
     organization = db.Column(db.String(64))
+    telephone = db.Column(db.String(11))
+
+    """ Ссылки на Application """
+    application_ship = db.relationship('Application', backref='shipper', uselist=False, foreign_keys='Application.shipper_id')
+    application_receive = db.relationship('Application', backref='receiver', uselist=False, foreign_keys='Application.receiver_id')
 
     def __repr__(self):
         return "<Contact №: {}>".format(self.contact_id)
