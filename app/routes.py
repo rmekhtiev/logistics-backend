@@ -2,8 +2,7 @@ from flask import render_template, request, redirect
 
 from app import app
 
-from app.models import Application, Route
-
+from app.models import Application, Route, Car
 
 @app.route('/')
 @app.route('/index')
