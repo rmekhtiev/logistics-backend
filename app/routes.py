@@ -4,6 +4,7 @@ from app import app
 
 from app.models import Application, Route, Car
 
+
 @app.route('/')
 @app.route('/index')
 def index():

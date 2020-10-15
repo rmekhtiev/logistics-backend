@@ -61,15 +61,15 @@ class Application(db.Model):
     payment = db.relationship('Payment', backref='application', uselist=False)
 
     """ Поле cargos - все грузы, которое имеет self приложение (Абстракция от SQLAlchemy)"""
-    cargos = db.relationship('Cargo', backref='applications', lazy='dynamic')
+    cargos = db.relationship('Cargo', backref='application', lazy='dynamic')
 
     """ Грузоотправитель """
     shipper_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
-    shipper = db.relationship('Contact', backref='applications', lazy='dynamic')
+    shipper = db.relationship('Contact', foreign_keys=[shipper_id])
 
     """ Грузополучатель """
     consignee_id = db.Column(db.Integer, db.ForeignKey('contacts.contact_id'))
-    consignee = db.relationship('Contact', backref='applications', lazy='dynamic')
+    consignee = db.relationship('Contact', foreign_keys=[consignee_id])
 
     """ Отношение многие-ко-многим с сущностью Cars"""
     cars = db.relationship('Car', secondary=cars_applications, backref='applications', lazy='dynamic')
@@ -185,11 +185,10 @@ class Contract(db.Model):
 
     """Заявка"""
     application_num = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
-    application = db.relationship('Application', backref='contracts', lazy='dynamic')
+    application = db.relationship('Application', backref='contract', uselist=False)
 
     """Клиент"""
     client_detail = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
-    client = db.relationship('Client', backref='contract', uselist=False)
 
     def __repr__(self):
         return "<Contract {}>".format(self.contract_id)
@@ -206,6 +205,9 @@ class Client(db.Model):
     middle_name = db.Column(db.String(32))
     email = db.Column(db.String(32))
     phone = db.Column(db.String(11))
+
+    """ Список контрактов у клиента многие-ко-многим """
+    contracts = db.relationship('Contract', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return "<Client {}>".format(self.client_id)
@@ -236,7 +238,7 @@ class Contact(db.Model):
     organization = db.Column(db.String(64))
 
     def __repr__(self):
-        return "<Contact`` {}>".format(self.contact_id)
+        return "<Contact №: {}>".format(self.contact_id)
 
 
 class Car(db.Model):
@@ -250,4 +252,4 @@ class Car(db.Model):
     is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
-        return "<Car`` {}>".format(self.car_id)
+        return "<Car №: {}>".format(self.car_id)
