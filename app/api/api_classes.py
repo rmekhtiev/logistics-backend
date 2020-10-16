@@ -1,5 +1,5 @@
 from flask import request, jsonify, url_for
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from app import db
 from app.models import *
 
@@ -87,3 +87,99 @@ class ApplicationSingleCargos(Resource):
         cargos = app.cargos.all()
         data = Cargo.to_dict_list(cargos)
         return jsonify(data)
+
+
+""" Водители (Driver) """
+
+
+# Все водители
+class Drivers(Resource):
+
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('last_name', type=str, required=True,
+                                   help='last name not provided', location='json')
+        self.reqparse.add_argument('first_name', type=str, required=True,
+                                   help='first name nor provided', location='json')
+        self.reqparse.add_argument('middle_name', type=str, required=False,
+                                   default=None, location='json')
+        self.reqparse.add_argument('categories', type=list, required=True,
+                                   help='categories not provided', location='json')
+        self.reqparse.add_argument('is_free', type=bool, required=False,
+                                   default=True, location='json')
+        super(Drivers, self).__init__()
+
+    # Выдать список всех объектов Driver
+    def get(self):
+        drivers_list = Driver.query.all()
+        data = Driver.to_dict_list(drivers_list)
+        return data, 200
+
+    # Создать новый объект Driver
+    def post(self):
+        data = self.reqparse.parse_args()
+
+        # Если водитель с таким ФИО уже есть
+        if Driver.query.filter_by(last_name=data['last_name'], first_name=data['first_name'],
+                                  middle_name=data['middle_name']).first():
+            return 'This driver already exist. May need to delete...'
+
+        driver = Driver()
+        driver.from_dict(data)
+        db.session.add(driver)
+        db.session.commit()
+        return driver.to_dict(), 200
+
+
+# Один водитель
+class DriverSingle(Resource):
+    # Получить объект Driver
+    def get(self, driver_id):
+        data = Driver.query.get_or_404(driver_id).to_dict()
+        return data, 200
+
+    # Внести изменения в объект Driver
+    def put(self, driver_id):
+        driver = Driver.query.get_or_404(driver_id)
+        data = request.get_json() or {}
+
+        # Если хотят изменить у Driver поле is_free (статус свободен)
+        if 'is_free' in data and driver.is_free != data['is_free']:
+            return "Drivers status can not be changed manually, it's done automatically"
+
+        # Если данные ничего не изменяют
+        if driver.to_dict() == data:
+            return "You have changed nothing"
+        else:
+            driver.from_dict(data)
+        db.session.commit()
+        return driver.to_dict(), 200
+
+    # Удалить объект Driver
+    def delete(self, driver_id):
+        driver = Driver.query.get_or_404(driver_id)
+        if not driver.is_free:
+            return {'message': 'This driver has an order and cannot be deleted (is not free)'}, 409
+        else:
+            db.session.delete(driver)
+            db.session.commit()
+        return driver.to_dict(), 200
+
+
+class Cars(Resource):
+    def get(self):
+        cars_list = Car.query.all()
+        data = Car.to_dict_list(cars_list)
+        return jsonify(data)
+
+    def post(self):
+        data = request.get_json() or {}
+        for column in ['weight', 'volume', 'model', 'category']:
+            if column not in data:
+                return 'must include model, category, weight and volume'
+        car = Car()
+        car.from_dict(data)
+        db.session.add(car)
+        db.session.commit()
+        return jsonify(car.to_dict())
