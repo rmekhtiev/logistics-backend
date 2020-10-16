@@ -2,7 +2,6 @@ from app import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON, BOOLEAN, ARRAY
 
-
 """ Смежная таблица многие-ко-многим (applications - cars) """
 cars_applications = db.Table('cars_applications',
                              db.Column('car_id', db.Integer, db.ForeignKey('cars.car_id')),
@@ -101,7 +100,7 @@ class Application(db.Model):
     # Преобразование списка объектов в словарь
     @staticmethod
     def to_dict_list(list_data):
-        data = [
+        new_data = [
             {
                 'id': data.application_id,
                 'name': data.name,
@@ -110,7 +109,7 @@ class Application(db.Model):
                 'payment': data.payment_detail
             }
             for data in list_data]
-        return data
+        return new_data
 
     # Извлечение данных в объект типа Application
     def from_dict(self, data):
@@ -217,9 +216,42 @@ class Driver(db.Model):
     driver_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(32), nullable=False)
     last_name = db.Column(db.String(32), nullable=False)
-    middle_name = db.Column(db.String(32))
-    categories = db.Column(ARRAY(db.String()))
+    middle_name = db.Column(db.String(32), nullable=True)
+    categories = db.Column(ARRAY(db.String()), nullable=True)
     is_free = db.Column(db.Boolean, default=True, nullable=False)
+
+    # Преобразование объекта Driver в словарь
+    def to_dict(self):
+        data = {
+            'driver_id': self.driver_id,
+            'last_name': self.last_name,
+            'first_name': self.first_name,
+            'middle_name': self.middle_name or None,
+            'categories': self.categories or None,
+            'is_free': self.is_free
+        }
+        return data
+
+    # Преобразование списка объектов типа Driver в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'driver_id': data.driver_id,
+                'last_name': data.first_name,
+                'first_name': data.last_name,
+                'middle_name': data.middle_name or None,
+                'categories': data.categories or None,
+                'is_free': data.is_free
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение данных из словаря в объект типа Driver
+    def from_dict(self, data):
+        for field in ['last_name', 'first_name', 'middle_name', 'categories']:
+            if field in data:
+                setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Driver {}>".format(self.driver_id)
@@ -237,8 +269,10 @@ class Contact(db.Model):
     telephone = db.Column(db.String(11))
 
     """ Ссылки на Application """
-    application_ship = db.relationship('Application', backref='shipper', uselist=False, foreign_keys='Application.shipper_id')
-    application_receive = db.relationship('Application', backref='receiver', uselist=False, foreign_keys='Application.receiver_id')
+    application_ship = db.relationship('Application', backref='shipper', uselist=False,
+                                       foreign_keys='Application.shipper_id')
+    application_receive = db.relationship('Application', backref='receiver', uselist=False,
+                                          foreign_keys='Application.receiver_id')
 
     def __repr__(self):
         return "<Contact №: {}>".format(self.contact_id)
@@ -253,6 +287,39 @@ class Car(db.Model):
     model = db.Column(db.String(64), nullable=False)
     category = db.Column(db.String(1), nullable=False)
     is_free = db.Column(db.Boolean, default=True, nullable=False)
+
+    # Преобразование объекта Car в словарь
+    def to_dict(self):
+        data = {
+            'car_id': self.car_id,
+            'model': self.model,
+            'category': self.category,
+            'weight': self.weight,
+            'volume': self.volume,
+            'is_free': self.is_free
+        }
+        return data
+
+    # Преобразование списка объектов типа Car в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'car_id': data.car_id,
+                'model': data.model,
+                'category': data.category,
+                'weight': data.weight,
+                'volume': data.volume,
+                'is_free': data.is_free
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение данных из словаря в объект типа Car
+    def from_dict(self, data):
+        for field in ['model', 'category', 'weight', 'volume']:
+            if field in data:
+                setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Car №: {}>".format(self.car_id)
