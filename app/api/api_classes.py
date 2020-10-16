@@ -1,33 +1,162 @@
-from flask import request, jsonify, url_for
+from flask import request, jsonify
 from flask_restful import Resource, reqparse
-from app import db
 from app.models import *
+
+""" Хуй пойми что, Семён пидарас """
 
 
 class HelloWorld(Resource):
+    # noinspection PyMethodMayBeStatic
     def get(self):
         return {'Test message': 'Hello World'}
 
+    # noinspection PyMethodMayBeStatic
     def post(self):
         json_in = request.get_json()
         return {'you sent': json_in}, 201
 
 
 class Multi(Resource):
+    # noinspection PyMethodMayBeStatic
     def get(self, num):
         return {'result': num * 10}
 
 
-""" Заявки """
+""" Клиенты (Clients) """
+
+
+# Список всех клиентов
+class Clients(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('passport_number', type=int, required=True,
+                                 help='passport number not provided', location='json')
+        self.parser.add_argument('passport_series', type=int, required=True,
+                                 help='passport series not provided', location='json')
+        self.parser.add_argument('last_name', type=str, required=True,
+                                 help='last name not provided', location='json')
+        self.parser.add_argument('first_name', type=str, required=True,
+                                 help='first name not provided', location='json')
+        self.parser.add_argument('middle_name', type=str, required=False, location='json')
+        self.parser.add_argument('email', type=str, required=False, location='json')
+        self.parser.add_argument('phone', type=str, required=True,
+                                 help='phone not provided', location='json')
+        super(Clients, self).__init__()
+
+    # Выдать список всех объектов Client
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        clients_list = Client.query.all()
+        data = Client.to_dict_list(clients_list)
+        return data, 200
+
+    # Создать новый объект Client
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Если клиент с такими паспортными данными уже существует
+        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
+            return {'message': "Client with that passport data already exists"}, 409
+
+        # Если клиент с таким телефоном уже есть
+        if Client.query.filter_by(phone=data['phone']).first():
+            return {'message': "Client with this phone already exists"}, 409
+
+        client = Client()
+        client.from_dict(data)
+        db.session.add(client)
+        db.session.commit()
+        return client.to_dict(), 201
+
+
+# Один клиент
+class ClientSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('passport_number', type=int, required=False, location='json')
+        self.parser.add_argument('passport_series', type=int, required=False, location='json')
+        self.parser.add_argument('last_name', type=str, required=False, location='json')
+        self.parser.add_argument('first_name', type=str, required=False, location='json')
+        self.parser.add_argument('middle_name', type=str, required=False, location='json')
+        self.parser.add_argument('email', type=str, required=False, location='json')
+        self.parser.add_argument('phone', type=str, required=False, location='json')
+        super(ClientSingle, self).__init__()
+
+    # Получить объект Client
+    # noinspection PyMethodMayBeStatic
+    def get(self, client_id):
+        client = Client.query.get_or_404(client_id)
+        data = client.to_dict()
+        return data, 200
+
+    # Внести изменения в объект Client
+    # noinspection PyMethodMayBeStatic
+    def put(self, client_id):
+        client = Client.query.get_or_404(client_id)
+        data = self.parser.parse_args()
+
+        # Если клиент с такими паспортными данными уже существует
+        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
+            return {'message': "Client with that passport data already exists"}, 409
+
+        # Если клиент с таким телефоном уже есть
+        if Client.query.filter_by(phone=data['phone']).first():
+            return {'message': "Client with this phone already exists"}, 409
+
+        # Если клиент с таким e-mail уже есть
+        if Client.query.filter_by(passport_number=data['email']).first():
+            return {'message': "Client with this e-mail address already exists"}, 409
+
+        # Если пытаются поменять клиенту номер паспорта, а такая комбинация уже есть у другого клиента
+        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=client.passport_series).first(): # noqa
+            return {'message': "Client cannot have passport data that already exists (passport number bad)"}, 409
+
+        # Если пытаются поменять клиенту серию паспорта, а такая комбинация уже есть у другого клиента
+        if Client.query.filter_by(passport_number=client.passport_number, passport_series=data['passport_series']).first(): # noqa
+            return {'message': "Client cannot have passport data that already exists (passport series bad)"}, 409
+
+        client.from_dict(data)
+        db.session.commit()
+        return client.to_dict(), 201
+
+    # Удалить объект Client
+    # noinspection PyMethodMayBeStatic
+    def delete(self, client_id):
+        client = Client.query.get_or_404(client_id)
+
+        # Если хотят удалить клиента, у которого есть активные контракты
+        client_contracts = client.contracts
+        for contract in client_contracts:
+            if not contract.application.is_finished:
+                return {'message': "Cannot delete client with an active contract"}, 409
+
+        db.session.delete(client)
+        db.session.commit()
+        return client.to_dict(), 200
+
+
+# Список всех контрактов, которые заключал клиент с компанией
+class ClientContracts(Resource):
+    # Вывести список всех Contract у данного Client
+    # noinspection PyMethodMayBeStatic
+    def get(self, client_id):
+        client = Client.query.get_or_404(client_id)
+        contracts = client.contracts
+        return Contract.to_dict_list(contracts), 200
 
 
 # Список всех заявок
 class ApplicationsList(Resource):
+    # noinspection PyMethodMayBeStatic
     def get(self):
         applications_list = Application.query.all()
         data = Application.to_dict_list(applications_list)
         return jsonify(data)
 
+    # noinspection PyMethodMayBeStatic
     def post(self):
         data = request.get_json() or {}
         for column in ['name', 'conclusion_date', 'delivery_route', 'payment_detail']:
@@ -45,12 +174,17 @@ class ApplicationsList(Resource):
         return jsonify(application.to_dict(False))
 
 
+""" Заявки (Application) """
+
+
 # Одна конкретная заявка
 class ApplicationSingle(Resource):
+    # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         data = Application.query.get_or_404(application_id).to_dict(JOIN=True)
         return jsonify(data)
 
+    # noinspection PyMethodMayBeStatic
     def put(self, application_id):
         application = Application.query.get_or_404(application_id)
         data = request.get_json() or {}
@@ -73,7 +207,6 @@ class ApplicationSingle(Resource):
             if not Payment.query.get(data['payment_detail']):
                 return "This payment detail doesn't exist. Please use a different payment"
 
-        application = Application()
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
@@ -82,6 +215,7 @@ class ApplicationSingle(Resource):
 
 # Все грузы у конкретной заявки
 class ApplicationSingleCargos(Resource):
+    # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         app = Application.query.get_or_404(application_id)
         cargos = app.cargos.all()
@@ -97,28 +231,30 @@ class Drivers(Resource):
 
     # Настройка запроса request и его полей
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('last_name', type=str, required=True,
-                                   help='last name not provided', location='json')
-        self.reqparse.add_argument('first_name', type=str, required=True,
-                                   help='first name nor provided', location='json')
-        self.reqparse.add_argument('middle_name', type=str, required=False,
-                                   default=None, location='json')
-        self.reqparse.add_argument('categories', type=list, required=True,
-                                   help='categories not provided', location='json')
-        self.reqparse.add_argument('is_free', type=bool, required=False,
-                                   default=True, location='json')
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('last_name', type=str, required=True,
+                                 help='last name not provided', location='json')
+        self.parser.add_argument('first_name', type=str, required=True,
+                                 help='first name nor provided', location='json')
+        self.parser.add_argument('middle_name', type=str, required=False,
+                                 default=None, location='json')
+        self.parser.add_argument('categories', type=list, required=True,
+                                 help='categories not provided', location='json')
+        self.parser.add_argument('is_free', type=bool, required=False,
+                                 default=True, location='json')
         super(Drivers, self).__init__()
 
     # Выдать список всех объектов Driver
+    # noinspection PyMethodMayBeStatic
     def get(self):
         drivers_list = Driver.query.all()
         data = Driver.to_dict_list(drivers_list)
         return data, 200
 
     # Создать новый объект Driver
+    # noinspection PyMethodMayBeStatic
     def post(self):
-        data = self.reqparse.parse_args()
+        data = self.parser.parse_args()
 
         # Если водитель с таким ФИО уже есть
         if Driver.query.filter_by(last_name=data['last_name'], first_name=data['first_name'],
@@ -134,52 +270,140 @@ class Drivers(Resource):
 
 # Один водитель
 class DriverSingle(Resource):
+
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('last_name', type=str, required=False, location='json')
+        self.parser.add_argument('first_name', type=str, required=False, location='json')
+        self.parser.add_argument('middle_name', type=str, required=False, location='json')
+        self.parser.add_argument('categories', type=list, required=False, location='json')
+        self.parser.add_argument('is_free', type=bool, required=False, location='json')
+        super(DriverSingle, self).__init__()
+
     # Получить объект Driver
+    # noinspection PyMethodMayBeStatic
     def get(self, driver_id):
         data = Driver.query.get_or_404(driver_id).to_dict()
         return data, 200
 
     # Внести изменения в объект Driver
+    # noinspection PyMethodMayBeStatic
     def put(self, driver_id):
         driver = Driver.query.get_or_404(driver_id)
-        data = request.get_json() or {}
+        data = self.parser.parse_args()
 
         # Если хотят изменить у Driver поле is_free (статус свободен)
         if 'is_free' in data and driver.is_free != data['is_free']:
-            return "Drivers status can not be changed manually, it's done automatically"
+            return {'message': "Drivers status can not be changed manually, it's done automatically"}, 409
 
         # Если данные ничего не изменяют
         if driver.to_dict() == data:
-            return "You have changed nothing"
-        else:
-            driver.from_dict(data)
+            return {'message': "You have changed nothing"}, 409
+
+        driver.from_dict(data)
         db.session.commit()
         return driver.to_dict(), 200
 
     # Удалить объект Driver
+    # noinspection PyMethodMayBeStatic
     def delete(self, driver_id):
         driver = Driver.query.get_or_404(driver_id)
+
+        # Если водитель сейчас выполняет заказ
         if not driver.is_free:
             return {'message': 'This driver has an order and cannot be deleted (is not free)'}, 409
-        else:
-            db.session.delete(driver)
-            db.session.commit()
+
+        db.session.delete(driver)
+        db.session.commit()
         return driver.to_dict(), 200
 
 
+""" Машины/Грузовики (Cars) """
+
+
+# Все машины
 class Cars(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('model', type=str, required=True,
+                                 help='model not provided', location='json')
+        self.parser.add_argument('category', type=str, required=True,
+                                 help='category not provided', location='json')
+        self.parser.add_argument('weight', type=float, required=True,
+                                 help='weight not provided', location='json')
+        self.parser.add_argument('volume', type=float, required=True,
+                                 help='volume not provided', location='json')
+        self.parser.add_argument('is_free', type=bool, required=False,
+                                 default=True, location='json')
+        super(Cars, self).__init__()
+
+    # Выдать список всех объектов Car
+    # noinspection PyMethodMayBeStatic
     def get(self):
         cars_list = Car.query.all()
         data = Car.to_dict_list(cars_list)
-        return jsonify(data)
+        return data, 200
 
+    # Создать новый объект Car
+    # noinspection PyMethodMayBeStatic
     def post(self):
-        data = request.get_json() or {}
-        for column in ['weight', 'volume', 'model', 'category']:
-            if column not in data:
-                return 'must include model, category, weight and volume'
+        data = self.parser.parse_args()
+
+        # Здесь никаких проверок вроде как нет, так как одинаковых машин может быть несколько
         car = Car()
         car.from_dict(data)
         db.session.add(car)
         db.session.commit()
-        return jsonify(car.to_dict())
+        return car.to_dict(), 201
+
+
+# Одна машина
+class CarSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('model', type=str, required=False, location='json')
+        self.parser.add_argument('category', type=str, required=False, location='json')
+        self.parser.add_argument('weight', type=float, required=False, location='json')
+        self.parser.add_argument('volume', type=float, required=False, location='json')
+        self.parser.add_argument('is_free', type=bool, required=False, location='json')
+        super(CarSingle, self).__init__()
+
+    # Получить объект Car
+    # noinspection PyMethodMayBeStatic
+    def get(self, car_id):
+        data = Car.query.get_or_404(car_id).to_dict()
+        return data, 200
+
+    # Внести изменения в объект Car
+    # noinspection PyMethodMayBeStatic
+    def put(self, car_id):
+        car = Car.query.get_or_404(car_id)
+        data = self.parser.parse_args()
+
+        # Если хотят изменить у Car поле is_free (статус свободен)
+        if 'is_free' in data and car.is_free != data['is_free']:
+            return {"message": "Cars status can not be changed manually, it's done automatically"}, 409
+
+        # Если данные ничего не изменяют
+        if car.to_dict() == data:
+            return {"message": "You have changed nothing"}, 409
+
+        car.from_dict(data)
+        db.session.commit()
+        return car.to_dict(), 200
+
+    # Удалить объект Car
+    # noinspection PyMethodMayBeStatic
+    def delete(self, car_id):
+        car = Car.query.get_or_404(car_id)
+
+        # Если машина в данный момент используется для выполнения заказа
+        if not car.is_free:
+            return {'message': 'This vehicle has an order and cannot be deleted (is not free)'}, 409
+
+        db.session.delete(car)
+        db.session.commit()
+        return car.to_dict(), 200

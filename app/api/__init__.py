@@ -4,4 +4,4 @@ from flask_restful import Api
 
 api = Api(app)
 
-from app.api import api_routes
+from app.api import api_routes  # noqa: E402

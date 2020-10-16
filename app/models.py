@@ -1,6 +1,6 @@
 from app import db
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON, BOOLEAN, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY
 
 """ Смежная таблица многие-ко-многим (applications - cars) """
 cars_applications = db.Table('cars_applications',
@@ -187,6 +187,45 @@ class Contract(db.Model):
     """Клиент"""
     client_detail = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
 
+    # Преобразование объекта Contract в словарь
+    def to_dict(self):
+        data = {
+            'contract_id': self.contract_id,
+            'conclusion_date': self.conclusion_date,
+            'BIK': self.BIK,
+            'INN': self.INN,
+            'KPP': self.KPP,
+            'KS': self.KS,
+            'bank_account': self.bank_account,
+            'application_num': self.application_num,
+            'client_detail': self.client_detail
+        }
+        return data
+
+    # Преобразование списка объектов типа Client в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'contract_id': data.contract_id,
+                'conclusion_date': data.conclusion_date,
+                'BIK': data.BIK,
+                'INN': data.INN,
+                'KPP': data.KPP,
+                'KS': data.KS,
+                'bank_account': data.bank_account,
+                'application_num': data.application_num,
+                'client_detail': data.client_detail
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение доступных not null данных из словаря в объект типа Client
+    def from_dict(self, data):
+        for field in ['contract_id', 'conclusion_date', 'BIK', 'INN', 'KPP', 'KS', 'bank_account', 'application_num', 'client_detail']:  # noqa
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
+
     def __repr__(self):
         return "<Contract {}>".format(self.contract_id)
 
@@ -195,16 +234,53 @@ class Client(db.Model):
     __tablename__ = 'clients'
 
     client_id = db.Column(db.Integer, primary_key=True)
-    passport_id = db.Column(db.Integer, nullable=False)
+    passport_number = db.Column(db.Integer, nullable=False)
     passport_series = db.Column(db.Integer, nullable=False)
     first_name = db.Column(db.String(32), nullable=False)
     last_name = db.Column(db.String(32), nullable=False)
-    middle_name = db.Column(db.String(32))
-    email = db.Column(db.String(32))
-    phone = db.Column(db.String(11))
+    middle_name = db.Column(db.String(32), nullable=True)
+    email = db.Column(db.String(32), nullable=True)
+    phone = db.Column(db.String(11), nullable=False)
 
-    """ Список контрактов у клиента многие-ко-многим """
+    """ Список контрактов у клиента многие-ко-одному """
     contracts = db.relationship('Contract', backref='client', lazy='dynamic')
+
+    # Преобразование объекта Client в словарь
+    def to_dict(self):
+        data = {
+            'client_id': self.client_id,
+            'passport_number': self.passport_number,
+            'passport_series': self.passport_series,
+            'last_name': self.last_name,
+            'first_name': self.first_name,
+            'middle_name': self.middle_name or None,
+            'email': self.email or None,
+            'phone': self.phone
+        }
+        return data
+
+    # Преобразование списка объектов типа Client в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'client_id': data.client_id,
+                'passport_number': data.passport_number,
+                'passport_series': data.passport_series,
+                'last_name': data.last_name,
+                'first_name': data.first_name,
+                'middle_name': data.middle_name or None,
+                'email': data.email or None,
+                'phone': data.phone
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение доступных not null данных из словаря в объект типа Client
+    def from_dict(self, data):
+        for field in ['passport_number', 'passport_series', 'last_name', 'first_name', 'middle_name', 'email', 'phone']:
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Client {}>".format(self.client_id)
@@ -247,10 +323,10 @@ class Driver(db.Model):
             for data in list_data]
         return new_data
 
-    # Извлечение данных из словаря в объект типа Driver
+    # Извлечение доступных not null данных из словаря в объект типа Driver
     def from_dict(self, data):
-        for field in ['last_name', 'first_name', 'middle_name', 'categories']:
-            if field in data:
+        for field in ['last_name', 'first_name', 'middle_name', 'categories', 'is_free']:
+            if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
     def __repr__(self):
@@ -315,10 +391,10 @@ class Car(db.Model):
             for data in list_data]
         return new_data
 
-    # Извлечение данных из словаря в объект типа Car
+    # Извлечение доступных not null данных из словаря в объект типа Car
     def from_dict(self, data):
-        for field in ['model', 'category', 'weight', 'volume']:
-            if field in data:
+        for field in ['model', 'category', 'weight', 'volume', 'is_free']:
+            if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
     def __repr__(self):
