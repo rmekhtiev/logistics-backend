@@ -55,10 +55,6 @@ class Application(db.Model):
     delivery_route = db.Column(db.Integer, db.ForeignKey('routes.route_id'))
     route = db.relationship('Route', backref='application', uselist=False)
 
-    """ Оплата """
-    payment_detail = db.Column(db.Integer, db.ForeignKey('payments.payment_id'))
-    payment = db.relationship('Payment', backref='application', uselist=False)
-
     """ Поле cargos - все грузы, которое имеет self приложение (Абстракция от SQLAlchemy)"""
     cargos = db.relationship('Cargo', backref='application', lazy='dynamic')
 
@@ -84,16 +80,14 @@ class Application(db.Model):
                 'id': self.application_id,
                 'name': self.name,
                 'conclusion date': self.conclusion_date,
-                'route': Route.query.get(self.delivery_route).to_dict(),
-                'payment': Payment.query.get(self.payment_detail).to_dict()
+                'route': Route.query.get(self.delivery_route).to_dict()
             }
         else:
             data = {
                 'id': self.application_id,
                 'name': self.name,
                 'conclusion date': self.conclusion_date,
-                'route': self.delivery_route,
-                'payment': self.payment_detail
+                'route': self.delivery_route
             }
         return data
 
@@ -105,15 +99,14 @@ class Application(db.Model):
                 'id': data.application_id,
                 'name': data.name,
                 'conclusion date': data.conclusion_date,
-                'route': data.delivery_route,
-                'payment': data.payment_detail
+                'route': data.delivery_route
             }
             for data in list_data]
         return new_data
 
     # Извлечение данных в объект типа Application
     def from_dict(self, data):
-        for field in ['name', 'conclusion_date', 'delivery_route', 'payment_detail']:
+        for field in ['name', 'conclusion_date', 'delivery_route']:
             if field in data:
                 setattr(self, field, data[field])
 
@@ -145,40 +138,16 @@ class Route(db.Model):
         return data
 
 
-class Payment(db.Model):
-    __tablename__ = 'payments'
-
-    payment_id = db.Column(db.Integer, primary_key=True)
-    cost = db.Column(db.Numeric(10, 2), nullable=False)
-    payment_type = db.Column(db.String(32), nullable=False)
-    short_change = db.Column(db.Boolean, nullable=True)
-
-    def __repr__(self):
-        return "<Payment {}>".format(self.payment_id)
-
-    def to_dict(self):
-        data = {
-            'id': self.payment_id,
-            'cost': float(self.cost),
-            'payment_type': self.payment_type,
-            'short_change': self.short_change
-        }
-        return data
-
-
 class Contract(db.Model):
     __tablename__ = 'contracts'
 
     contract_id = db.Column(db.Integer, primary_key=True)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
+    cost = db.Column(db.Numeric(10, 2), nullable=False)
+    payment_type = db.Column(db.String(32), nullable=False)
 
     """Реквизиты"""
-    bank_name = db.Column(db.String(64), nullable=False)
-    BIK = db.Column(db.String(9), nullable=False)
-    INN = db.Column(db.String(10), nullable=False)
-    KPP = db.Column(db.String(9), nullable=False)
-    KS = db.Column(db.String(20), nullable=False)
-    bank_account = db.Column(db.String(20), nullable=False)
+    requisite = db.relationship('Requisite', backref='contracts', lazy='dynamic')
 
     """Заявка"""
     application_num = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
@@ -192,11 +161,6 @@ class Contract(db.Model):
         data = {
             'contract_id': self.contract_id,
             'conclusion_date': self.conclusion_date,
-            'BIK': self.BIK,
-            'INN': self.INN,
-            'KPP': self.KPP,
-            'KS': self.KS,
-            'bank_account': self.bank_account,
             'application_num': self.application_num,
             'client_detail': self.client_detail
         }
@@ -209,11 +173,6 @@ class Contract(db.Model):
             {
                 'contract_id': data.contract_id,
                 'conclusion_date': data.conclusion_date,
-                'BIK': data.BIK,
-                'INN': data.INN,
-                'KPP': data.KPP,
-                'KS': data.KS,
-                'bank_account': data.bank_account,
                 'application_num': data.application_num,
                 'client_detail': data.client_detail
             }
@@ -222,12 +181,64 @@ class Contract(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['contract_id', 'conclusion_date', 'BIK', 'INN', 'KPP', 'KS', 'bank_account', 'application_num', 'client_detail']:  # noqa
+        for field in ['contract_id', 'conclusion_date', 'application_num', 'client_detail']:  # noqa
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Contract {}>".format(self.contract_id)
+
+
+class Requisite(db.Model):
+    __tablename__ = 'requisites'
+
+    requisite_id = db.Column(db.Integer, primary_key=True)
+    bank_name = db.Column(db.String(64), nullable=False)
+    BIK = db.Column(db.String(9), nullable=False)
+    INN = db.Column(db.String(10), nullable=False)
+    KPP = db.Column(db.String(9), nullable=False)
+    KS = db.Column(db.String(20), nullable=False)
+    RS = db.Column(db.String(20), nullable=False)
+    bank_account = db.Column(db.String(20), nullable=False)
+    contract_id = db.Column(db.Integer, db.ForeignKey('contracts.contract_id'))
+
+    # Преобразование объекта Requisite в словарь
+    def to_dict(self):
+        data = {
+            'requisite_id': self.requisite_id,
+            'bank_name': self.bank_name,
+            'BIK': self.BIK,
+            'INN': self.INN,
+            'KS': self.KS,
+            'RS': self.RS,
+            'bank_account': self.bank_account
+        }
+        return data
+
+    # Преобразование списка объектов типа Requisite в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'requisite_id': data.requisite_id,
+                'bank_name': data.bank_name,
+                'BIK': data.BIK,
+                'INN': data.INN,
+                'KS': data.KS,
+                'RS': data.RS,
+                'bank_account`': data.bank_account
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение доступных not null данных из словаря в объект типа Requisite
+    def from_dict(self, data):
+        for field in ['bank_name', 'BIK', 'INN', 'KS', 'RS', 'bank_account']:
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
+
+    def __repr__(self):
+        return "<Requisite №: {}>".format(self.requisite_id)
 
 
 class Client(db.Model):

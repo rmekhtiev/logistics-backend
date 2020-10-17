@@ -148,21 +148,52 @@ class ClientContracts(Resource):
         return Contract.to_dict_list(contracts), 200
 
 
+""" Контракты (Contract) """
+
+
+# Список всех контрактов
+class Contracts(Resource):
+    # TODO: contract class
+    pass
+
+
+""" Заявки (Application) """
+
+
+# TODO: реализовать классы Applications исходя из новых изменений в бд
 # Список всех заявок
-class ApplicationsList(Resource):
+class Applications(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('name', type=str, required=True,
+                                 help='application name (description) not provided', location='json')
+        self.parser.add_argument('conclusion_date', type=str, required=False,
+                                 default=datetime.utcnow, location='json')
+        self.parser.add_argument('delivery_route', type=int, required=True,
+                                 help='delivery route not provided', location='json')
+        self.parser.add_argument('payment_detail', type=int, required=True,
+                                 help='payment detail not provided', location='json')
+        self.parser.add_argument('shipper_id', type=int, required=True,
+                                 help='shipper not provided', location='json')
+        self.parser.add_argument('receiver_id', type=int, required=True,
+                                 help='receiver not provided', location='json')
+        self.parser.add_argument('is_finished', type=bool, required=False,
+                                 default=False, location='json')
+        super(Applications, self).__init__()
+
+    # Выдать список всех объектов типа Application
     # noinspection PyMethodMayBeStatic
     def get(self):
         applications_list = Application.query.all()
         data = Application.to_dict_list(applications_list)
-        return jsonify(data)
+        return data, 200
 
+    # Добавить новый объект типа Application
     # noinspection PyMethodMayBeStatic
     def post(self):
-        data = request.get_json() or {}
-        for column in ['name', 'conclusion_date', 'delivery_route', 'payment_detail']:
-            if column not in data:
-                # + 'must include name, conclusion date, delivery route and payment'
-                return jsonify(data)
+        data = self.parser.parse_args()
+
         if Application.query.filter_by(delivery_route=data['delivery_route']).first():
             return 'please use a different delivery_route (already exist)'
         if Application.query.filter_by(payment_detail=data['payment_detail']).first():
@@ -172,9 +203,6 @@ class ApplicationsList(Resource):
         db.session.add(application)
         db.session.commit()
         return jsonify(application.to_dict(False))
-
-
-""" Заявки (Application) """
 
 
 # Одна конкретная заявка
@@ -203,9 +231,6 @@ class ApplicationSingle(Resource):
             # Если такая оплата уже используется
             if Application.query.filter_by(payment_detail=data['payment_detail']).first():
                 return 'This payment detail is already in use. Please use a different payment'
-            # Если такой оплаты нет
-            if not Payment.query.get(data['payment_detail']):
-                return "This payment detail doesn't exist. Please use a different payment"
 
         application.from_dict(data)
         db.session.add(application)

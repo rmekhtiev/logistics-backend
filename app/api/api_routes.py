@@ -6,7 +6,7 @@ from app.api import api
 api.add_resource(HelloWorld, '/api/v1.0/hello')
 
 """ Applications """
-api.add_resource(ApplicationsList, '/api/v1.0/applications')
+api.add_resource(Applications, '/api/v1.0/applications')
 api.add_resource(ApplicationSingle, '/api/v1.0/applications/<application_id>')
 api.add_resource(ApplicationSingleCargos, '/api/v1.0/applications/<application_id>/cargos')
 
@@ -20,6 +20,7 @@ api.add_resource(Cars, '/api/v1.0/cars')
 api.add_resource(CarSingle, '/api/v1.0/cars/<car_id>')
 # api.add_resource(DriversService, '/api/v1.0/drivers/<driver_id>/service') TODO: create Cars service (apps travelled)
 
-api.add_resource(Clients, '/api/v1.0/cars')
+""" Clients """
+api.add_resource(Clients, '/api/v1.0/clients')
 api.add_resource(ClientSingle, '/api/v1.0/clients/<client_id>')
 api.add_resource(ClientContracts, '/api/v1.0/clients/<client_id>/contracts')
