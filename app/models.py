@@ -211,7 +211,8 @@ class Requisite(db.Model):
             'INN': self.INN,
             'KS': self.KS,
             'RS': self.RS,
-            'bank_account': self.bank_account
+            'bank_account': self.bank_account,
+            'contract_id': self.contract_id
         }
         return data
 
@@ -226,14 +227,15 @@ class Requisite(db.Model):
                 'INN': data.INN,
                 'KS': data.KS,
                 'RS': data.RS,
-                'bank_account`': data.bank_account
+                'bank_account`': data.bank_account,
+                'contract_id': data.contract_id,
             }
             for data in list_data]
         return new_data
 
     # Извлечение доступных not null данных из словаря в объект типа Requisite
     def from_dict(self, data):
-        for field in ['bank_name', 'BIK', 'INN', 'KS', 'RS', 'bank_account']:
+        for field in ['bank_name', 'BIK', 'INN', 'KS', 'RS', 'bank_account', 'contract_id']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
