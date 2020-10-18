@@ -154,7 +154,7 @@ class Contract(db.Model):
     application = db.relationship('Application', backref='contract', uselist=False)
 
     """Клиент"""
-    client_detail = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
 
     # Преобразование объекта Contract в словарь
     def to_dict(self):
@@ -162,7 +162,7 @@ class Contract(db.Model):
             'contract_id': self.contract_id,
             'conclusion_date': self.conclusion_date,
             'application_num': self.application_num,
-            'client_detail': self.client_detail
+            'client_id': self.client_id
         }
         return data
 
@@ -174,14 +174,14 @@ class Contract(db.Model):
                 'contract_id': data.contract_id,
                 'conclusion_date': data.conclusion_date,
                 'application_num': data.application_num,
-                'client_detail': data.client_detail
+                'client_id': data.client_id
             }
             for data in list_data]
         return new_data
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['contract_id', 'conclusion_date', 'application_num', 'client_detail']:  # noqa
+        for field in ['contract_id', 'conclusion_date', 'application_num', 'client_id']:  # noqa
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
@@ -355,7 +355,7 @@ class Contact(db.Model):
     middle_name = db.Column(db.String(32))
     position = db.Column(db.String(32))
     organization = db.Column(db.String(64))
-    telephone = db.Column(db.String(11))
+    phone = db.Column(db.String(11))
 
     """ Ссылки на Application """
     application_ship = db.relationship('Application', backref='shipper', uselist=False,
