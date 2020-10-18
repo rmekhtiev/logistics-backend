@@ -274,7 +274,7 @@ class Drivers(Resource):
     def get(self):
         drivers_list = Driver.query.all()
         data = Driver.to_dict_list(drivers_list)
-        return data, 200
+        return {"data": data}, 200
 
     # Создать новый объект Driver
     # noinspection PyMethodMayBeStatic
