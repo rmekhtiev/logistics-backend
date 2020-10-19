@@ -160,12 +160,10 @@ class Contracts(Resource):
                                  default=datetime.utcnow, location='json')
         self.parser.add_argument('cost', type=float, required=True,
                                  help='cost of the payment not provided', location='json')
-        self.parser.add_argument('client_id', type=int, required=False,
-                                 default=None, location='json')
+        self.parser.add_argument('client_id', type=int, required=False, location='json')
         self.parser.add_argument('payment_type', type=str, required=False,
                                  default='банковский перевод', location='json')
-        self.parser.add_argument('application_id', type=int, required=False,
-                                 default=None, location='json')
+        self.parser.add_argument('application_id', type=int, required=False, location='json')
         super(Contracts, self).__init__()
 
     # Выдать список всех объектов типа Contract
@@ -175,13 +173,85 @@ class Contracts(Resource):
         data = Contract.to_dict_list(contracts_list)
         return {'data': data}, 200
 
-    # TODO: contract class
+    # Добавить новый объект типа Contract
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Если контракту присваивают application, который уже используется
+        if data['application_id'] is not None:
+            if Application.query.get_or_404(data['application_id']).contract:
+                return {'message': "this application is already in use"}
+
+        # На клиента проверку не делаем, так как он может иметь сколь угодно много контрактов
+
+        # TODO: сделать проверку на корректность payment_type (в процессе понять какие возможные значения принимаются)
+
+        contract = Contract()
+        contract.from_dict(data)
+        db.session.add(contract)
+        db.session.commit()
+        return {'data': contract.to_dict()}, 200
+
+
+# Один контракт
+class ContractSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('conclusion_date', type=str, required=False, location='json')
+        self.parser.add_argument('cost', type=float, required=False, location='json')
+        self.parser.add_argument('client_id', type=int, required=False, location='json')
+        self.parser.add_argument('payment_type', type=str, required=False, location='json')
+        self.parser.add_argument('application_id', type=int, required=False, location='json')
+        super(ContractSingle, self).__init__()
+
+    # Получить объект Contract
+    # noinspection PyMethodMayBeStatic
+    def get(self, contract_id):
+        contract = Contract.query.get_or_404(contract_id).to_dict()
+        return {'data': contract.to_dict()}, 200
+
+    # Внести изменения в объект Contract
+    # noinspection PyMethodMayBeStatic
+    def put(self, contract_id):
+        contract = Contract.query.get_or_404(contract_id)
+        data = self.parser.parse_args()
+
+        # Если хотят изменить у Contract поле conclusion_date (дата создания)
+        if data['conclusion_date'] is not None:
+            return {'message': "contracts conclusion date cannot be changed, it's done automatically"}, 409
+
+        # Если данные ничего не изменяют
+        if contract.to_dict() == data:
+            return {"message": "You have changed nothing"}, 409
+
+        # Проверку на изменнение клиента не делаем
+
+        # Если контракту присваивают application, который уже используется
+        if data['application_id'] is not None:
+            if Application.query.get_or_404(data['application_id']).contract:
+                return {'message': "this application is already in use"}, 409
+
+        contract.from_dict(data)
+        db.session.commit()
+        return {'data': contract.to_dict()}, 201
+
+    # Удалить объект Contract
+    # noinspection PyMethodMayBeStatic
+    def delete(self, contract_id):
+        contract = Contract.query.get_or_404(contract_id)
+
+        # TODO: Сделать проверку на то, использует ли контракт невыполненную заявку
+
+        db.session.delete(contract)
+        db.session.commit()
+        return {'data': contract.to_dict()}, 200
 
 
 """ Заявки (Application) """
 
 
-# TODO: реализовать классы Applications исходя из новых изменений в бд
 # Список всех заявок
 class Applications(Resource):
     # Настройка запроса request и его полей
@@ -191,16 +261,11 @@ class Applications(Resource):
                                  help='application name (description) not provided', location='json')
         self.parser.add_argument('conclusion_date', type=str, required=False,
                                  default=datetime.utcnow, location='json')
-        self.parser.add_argument('delivery_route', type=int, required=True,
-                                 help='delivery route not provided', location='json')
-        self.parser.add_argument('payment_detail', type=int, required=True,
-                                 help='payment detail not provided', location='json')
-        self.parser.add_argument('shipper_id', type=int, required=True,
-                                 help='shipper not provided', location='json')
-        self.parser.add_argument('receiver_id', type=int, required=True,
-                                 help='receiver not provided', location='json')
-        self.parser.add_argument('is_finished', type=bool, required=False,
-                                 default=False, location='json')
+        self.parser.add_argument('delivery_route', type=int, required=False, location='json')
+        self.parser.add_argument('shipper_id', type=int, required=False, location='json')
+        self.parser.add_argument('receiver_id', type=int, required=False, location='json')
+        self.parser.add_argument('status', type=str, required=False,
+                                 default='active', location='json')
         super(Applications, self).__init__()
 
     # Выдать список всех объектов типа Application
@@ -208,38 +273,60 @@ class Applications(Resource):
     def get(self):
         applications_list = Application.query.all()
         data = Application.to_dict_list(applications_list)
-        return data, 200
+        return {'data': data}, 200
 
     # Добавить новый объект типа Application
     # noinspection PyMethodMayBeStatic
     def post(self):
         data = self.parser.parse_args()
 
+        # Если контактные лица уже привязаны к каким-то заявкам
+        if data['shipper_id'] is not None:
+            if Application.query.filter_by(shipper_id=data['shipper_id']).first():
+                return {'message': "this contact is already in use"}, 409
+        if data['receiver_id'] is not None:
+            if Application.query.filter_by(receiver_id=data['receiver_id']).first():
+                return {'message': "this contact is already in use"}, 409
+
+        # Если такой маршрут уже используется какой-то заявкой
         if Application.query.filter_by(delivery_route=data['delivery_route']).first():
-            return 'please use a different delivery_route (already exist)'
-        if Application.query.filter_by(payment_detail=data['payment_detail']).first():
-            return 'please use a different payment_detail (already exist)'
+            return {'message': "please use a different delivery_route (already in use)" }
+
         application = Application()
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return jsonify(application.to_dict(False))
+        return {'data': application.to_dict(False)}, 200
 
 
 # Одна конкретная заявка
 class ApplicationSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('name', type=str, required=False, location='json')
+        self.parser.add_argument('conclusion_date', type=str, required=False, location='json')
+        self.parser.add_argument('delivery_route', type=int, required=False, location='json')
+        self.parser.add_argument('shipper_id', type=int, required=False, location='json')
+        self.parser.add_argument('receiver_id', type=int, required=False, location='json')
+        self.parser.add_argument('status', type=str, required=False, location='json')
+        super(ApplicationSingle, self).__init__()
+
+    # Получить объект Application
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
-        data = Application.query.get_or_404(application_id).to_dict(JOIN=True)
-        return jsonify(data)
+        application = Application.query.get_or_404(application_id)
+        data = application.to_dict(JOIN=False)
+        return {'data': data}, 200
 
+    # Внести изменения в объект Application
     # noinspection PyMethodMayBeStatic
     def put(self, application_id):
         application = Application.query.get_or_404(application_id)
-        data = request.get_json() or {}
+        data = self.parser.parse_args()
 
         # Если хотят изменить у Application поле delivery_route (маршрут)
-        if 'delivery_route' in data:
+        if data['delivery_route'] is not None:
             # Если такой маршрут уже используется
             if Application.query.filter_by(delivery_route=data['delivery_route']).first():
                 return 'This delivery route is already in use. Please use a different route'

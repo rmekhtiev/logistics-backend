@@ -106,8 +106,8 @@ class Application(db.Model):
 
     # Извлечение данных в объект типа Application
     def from_dict(self, data):
-        for field in ['name', 'conclusion_date', 'delivery_route']:
-            if field in data:
+        for field in ['name', 'conclusion_date', 'delivery_route', 'shipper_id', 'receiver_id', 'status']:
+            if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
 
@@ -181,7 +181,7 @@ class Contract(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['contract_id', 'conclusion_date', 'application_num', 'client_id']:  # noqa
+        for field in ['conclusion_date', 'cost', 'payment_type', 'application_num', 'client_id']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
