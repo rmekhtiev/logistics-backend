@@ -49,7 +49,7 @@ class Application(db.Model):
     application_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
-    is_finished = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(9), default='active', nullable=True)
 
     """ Маршрут """
     delivery_route = db.Column(db.Integer, db.ForeignKey('routes.route_id'))
@@ -144,13 +144,13 @@ class Contract(db.Model):
     contract_id = db.Column(db.Integer, primary_key=True)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
     cost = db.Column(db.Numeric(10, 2), nullable=False)
-    payment_type = db.Column(db.String(32), nullable=False)
+    payment_type = db.Column(db.String(32), default='банковский перевод', nullable=True)
 
     """Реквизиты"""
     requisite = db.relationship('Requisite', backref='contracts', lazy='dynamic')
 
     """Заявка"""
-    application_num = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
     application = db.relationship('Application', backref='contract', uselist=False)
 
     """Клиент"""
@@ -161,7 +161,7 @@ class Contract(db.Model):
         data = {
             'contract_id': self.contract_id,
             'conclusion_date': self.conclusion_date,
-            'application_num': self.application_num,
+            'application_num': self.application_id,
             'client_id': self.client_id
         }
         return data
@@ -173,7 +173,7 @@ class Contract(db.Model):
             {
                 'contract_id': data.contract_id,
                 'conclusion_date': data.conclusion_date,
-                'application_num': data.application_num,
+                'application_num': data.application_id,
                 'client_id': data.client_id
             }
             for data in list_data]
@@ -307,7 +307,6 @@ class Driver(db.Model):
     last_name = db.Column(db.String(32), nullable=False)
     middle_name = db.Column(db.String(32), nullable=True)
     categories = db.Column(ARRAY(db.String()), nullable=True)
-    is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     # Преобразование объекта Driver в словарь
     def to_dict(self):
@@ -316,8 +315,7 @@ class Driver(db.Model):
             'last_name': self.last_name,
             'first_name': self.first_name,
             'middle_name': self.middle_name or None,
-            'categories': self.categories or None,
-            'is_free': self.is_free
+            'categories': self.categories or None
         }
         return data
 
@@ -330,15 +328,14 @@ class Driver(db.Model):
                 'last_name': data.first_name,
                 'first_name': data.last_name,
                 'middle_name': data.middle_name or None,
-                'categories': data.categories or None,
-                'is_free': data.is_free
+                'categories': data.categories or None
             }
             for data in list_data]
         return new_data
 
     # Извлечение доступных not null данных из словаря в объект типа Driver
     def from_dict(self, data):
-        for field in ['last_name', 'first_name', 'middle_name', 'categories', 'is_free']:
+        for field in ['last_name', 'first_name', 'middle_name', 'categories']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
@@ -375,7 +372,6 @@ class Car(db.Model):
     volume = db.Column(db.Float, nullable=False)
     model = db.Column(db.String(64), nullable=False)
     category = db.Column(db.String(1), nullable=False)
-    is_free = db.Column(db.Boolean, default=True, nullable=False)
 
     # Преобразование объекта Car в словарь
     def to_dict(self):
@@ -384,8 +380,7 @@ class Car(db.Model):
             'model': self.model,
             'category': self.category,
             'weight': self.weight,
-            'volume': self.volume,
-            'is_free': self.is_free
+            'volume': self.volume
         }
         return data
 
@@ -398,15 +393,14 @@ class Car(db.Model):
                 'model': data.model,
                 'category': data.category,
                 'weight': data.weight,
-                'volume': data.volume,
-                'is_free': data.is_free
+                'volume': data.volume
             }
             for data in list_data]
         return new_data
 
     # Извлечение доступных not null данных из словаря в объект типа Car
     def from_dict(self, data):
-        for field in ['model', 'category', 'weight', 'volume', 'is_free']:
+        for field in ['model', 'category', 'weight', 'volume']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 

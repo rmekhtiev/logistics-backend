@@ -127,7 +127,7 @@ class ClientSingle(Resource):
     def delete(self, client_id):
         client = Client.query.get_or_404(client_id)
 
-        # Если хотят удалить клиента, у которого есть активные контракты
+        # Если хотят удалить клиента, у которого есть активные контракты TODO: поменять is_finished на status
         client_contracts = client.contracts
         for contract in client_contracts:
             if not contract.application.is_finished:
@@ -153,8 +153,29 @@ class ClientContracts(Resource):
 
 # Список всех контрактов
 class Contracts(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('conclusion_date', type=str, required=False,
+                                 default=datetime.utcnow, location='json')
+        self.parser.add_argument('cost', type=float, required=True,
+                                 help='cost of the payment not provided', location='json')
+        self.parser.add_argument('client_id', type=int, required=False,
+                                 default=None, location='json')
+        self.parser.add_argument('payment_type', type=str, required=False,
+                                 default='банковский перевод', location='json')
+        self.parser.add_argument('application_id', type=int, required=False,
+                                 default=None, location='json')
+        super(Contracts, self).__init__()
+
+    # Выдать список всех объектов типа Contract
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        contracts_list = Contract.query.all()
+        data = Contract.to_dict_list(contracts_list)
+        return {'data': data}, 200
+
     # TODO: contract class
-    pass
 
 
 """ Заявки (Application) """
@@ -425,7 +446,7 @@ class CarSingle(Resource):
     def delete(self, car_id):
         car = Car.query.get_or_404(car_id)
 
-        # Если машина в данный момент используется для выполнения заказа
+        # Если машина в данный момент используется для выполнения заказа TODO: 'is_finished' change to 'status'
         if not car.is_free:
             return {'message': 'This vehicle has an order and cannot be deleted (is not free)'}, 409
 
