@@ -24,3 +24,7 @@ api.add_resource(CarSingle, '/api/v1.0/cars/<car_id>')
 api.add_resource(Clients, '/api/v1.0/clients')
 api.add_resource(ClientSingle, '/api/v1.0/clients/<client_id>')
 api.add_resource(ClientContracts, '/api/v1.0/clients/<client_id>/contracts')
+
+""" Contracts """
+api.add_resource(Contracts, '/api/v1.0/contracts')
+api.add_resource(ContractSingle, '/api/v1.0/contracts/<contract_id>')

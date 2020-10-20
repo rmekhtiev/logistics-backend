@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from flask_restful import Resource, reqparse
 from app.models import *
 
@@ -49,7 +49,7 @@ class Clients(Resource):
     def get(self):
         clients_list = Client.query.all()
         data = Client.to_dict_list(clients_list)
-        return data, 200
+        return {'data': data}, 200
 
     # Создать новый объект Client
     # noinspection PyMethodMayBeStatic
@@ -60,6 +60,9 @@ class Clients(Resource):
         if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
             return {'message': "Client with that passport data already exists"}, 409
 
+        # Проверка на правильность телефонного номера
+        if len(data['phone']) > 11 or data['phone'][0] is not '7':
+            return {'message': "Incorrect phone format"}, 409
         # Если клиент с таким телефоном уже есть
         if Client.query.filter_by(phone=data['phone']).first():
             return {'message': "Client with this phone already exists"}, 409
@@ -68,7 +71,8 @@ class Clients(Resource):
         client.from_dict(data)
         db.session.add(client)
         db.session.commit()
-        return client.to_dict(), 201
+        data = client.to_dict()
+        return {'data': data}, 201
 
 
 # Один клиент
@@ -90,7 +94,7 @@ class ClientSingle(Resource):
     def get(self, client_id):
         client = Client.query.get_or_404(client_id)
         data = client.to_dict()
-        return data, 200
+        return {'data': data}, 200
 
     # Внести изменения в объект Client
     # noinspection PyMethodMayBeStatic
@@ -101,6 +105,10 @@ class ClientSingle(Resource):
         # Если клиент с такими паспортными данными уже существует
         if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
             return {'message': "Client with that passport data already exists"}, 409
+
+        # Проверка на правильность телефонного номера
+        if len(data['phone']) > 11 or data['phone'][0] is not '7':
+            return {'message': "incorrect phone format"}, 409
 
         # Если клиент с таким телефоном уже есть
         if Client.query.filter_by(phone=data['phone']).first():
@@ -120,22 +128,23 @@ class ClientSingle(Resource):
 
         client.from_dict(data)
         db.session.commit()
-        return client.to_dict(), 201
+        return {'data': client.to_dict()}, 200
 
     # Удалить объект Client
     # noinspection PyMethodMayBeStatic
     def delete(self, client_id):
         client = Client.query.get_or_404(client_id)
 
-        # Если хотят удалить клиента, у которого есть активные контракты TODO: поменять is_finished на status
+        # Если хотят удалить клиента, у которого есть активные контракты
         client_contracts = client.contracts
         for contract in client_contracts:
-            if not contract.application.is_finished:
+            if contract.application.status == 'active':
                 return {'message': "Cannot delete client with an active contract"}, 409
 
         db.session.delete(client)
         db.session.commit()
-        return client.to_dict(), 200
+        data = client.to_dict()
+        return {'data': data}, 200
 
 
 # Список всех контрактов, которые заключал клиент с компанией
@@ -145,7 +154,7 @@ class ClientContracts(Resource):
     def get(self, client_id):
         client = Client.query.get_or_404(client_id)
         contracts = client.contracts
-        return Contract.to_dict_list(contracts), 200
+        return {'data': Contract.to_dict_list(contracts)}, 200
 
 
 """ Контракты (Contract) """
@@ -231,18 +240,19 @@ class ContractSingle(Resource):
         # Если контракту присваивают application, который уже используется
         if data['application_id'] is not None:
             if Application.query.get_or_404(data['application_id']).contract:
-                return {'message': "this application is already in use"}, 409
+                return {'message': "This application is already in use"}, 409
 
         contract.from_dict(data)
         db.session.commit()
-        return {'data': contract.to_dict()}, 201
+        return {'data': contract.to_dict()}, 200
 
     # Удалить объект Contract
     # noinspection PyMethodMayBeStatic
     def delete(self, contract_id):
         contract = Contract.query.get_or_404(contract_id)
 
-        # TODO: Сделать проверку на то, использует ли контракт невыполненную заявку
+        if contract.application.status == 'active':
+            return {'message': "This contract has an active application and cannot be deleted"}, 409
 
         db.session.delete(contract)
         db.session.commit()
@@ -283,20 +293,20 @@ class Applications(Resource):
         # Если контактные лица уже привязаны к каким-то заявкам
         if data['shipper_id'] is not None:
             if Application.query.filter_by(shipper_id=data['shipper_id']).first():
-                return {'message': "this contact is already in use"}, 409
+                return {'message': "This contact is already in use"}, 409
         if data['receiver_id'] is not None:
             if Application.query.filter_by(receiver_id=data['receiver_id']).first():
-                return {'message': "this contact is already in use"}, 409
+                return {'message': "This contact is already in use"}, 409
 
         # Если такой маршрут уже используется какой-то заявкой
         if Application.query.filter_by(delivery_route=data['delivery_route']).first():
-            return {'message': "please use a different delivery_route (already in use)" }
+            return {'message': "Please use a different delivery_route (already in use)"}
 
         application = Application()
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return {'data': application.to_dict(False)}, 200
+        return {'data': application.to_dict()}, 200
 
 
 # Одна конкретная заявка
@@ -316,7 +326,7 @@ class ApplicationSingle(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         application = Application.query.get_or_404(application_id)
-        data = application.to_dict(JOIN=False)
+        data = application.to_dict()
         return {'data': data}, 200
 
     # Внести изменения в объект Application
@@ -329,21 +339,41 @@ class ApplicationSingle(Resource):
         if data['delivery_route'] is not None:
             # Если такой маршрут уже используется
             if Application.query.filter_by(delivery_route=data['delivery_route']).first():
-                return 'This delivery route is already in use. Please use a different route'
+                return {'message': "This delivery route is already in use. Please use a different route"}
             # Если такого маршрута нет
             if not Route.query.get(data['delivery_route']):
-                return "This delivery route doesn't exist. Please use a different route"
+                return {'message': "This delivery route doesn't exist. Please use a different route"}
 
-        # Если хотят изменить у Application поле payment_detail (оплата)
-        if 'payment_detail' in data:
-            # Если такая оплата уже используется
-            if Application.query.filter_by(payment_detail=data['payment_detail']).first():
-                return 'This payment detail is already in use. Please use a different payment'
+        # Если контактные лица уже привязаны к каким-то заявкам
+        if data['shipper_id'] is not None:
+            if Application.query.filter_by(shipper_id=data['shipper_id']).first():
+                return {'message': "This contact is already in use"}, 409
+            # Если такого контакта нет
+            if Contact.query.get(data['shipper_id']):
+                return {'message': "This contact doesn't exist"}, 409
+        if data['receiver_id'] is not None:
+            if Application.query.filter_by(receiver_id=data['receiver_id']).first():
+                return {'message': "This contact is already in use"}, 409
+            # Если такого контакта нет
+            if Contact.query.get(data['shipper_id']):
+                return {'message': "This contact doesn't exist"}, 409
 
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return jsonify(application.to_dict(False))
+        return {'data': application.to_dict()}, 201
+
+    # Удалить объект Application
+    # noinspection PyMethodMayBeStatic
+    def delete(self, application_id):
+        application = Application.query.get_or_404(application_id)
+
+        if application.status == 'active':
+            return {'message': "This application is active and cannot be deleted until it's finished"}, 409
+
+        db.session.delete(application)
+        db.session.commit()
+        return {'data': application.to_dict()}, 200
 
 
 # Все грузы у конкретной заявки
@@ -353,7 +383,7 @@ class ApplicationSingleCargos(Resource):
         app = Application.query.get_or_404(application_id)
         cargos = app.cargos.all()
         data = Cargo.to_dict_list(cargos)
-        return jsonify(data)
+        return {'data': data}, 200
 
 
 """ Водители (Driver) """
@@ -373,8 +403,6 @@ class Drivers(Resource):
                                  default=None, location='json')
         self.parser.add_argument('categories', type=list, required=True,
                                  help='categories not provided', location='json')
-        self.parser.add_argument('is_free', type=bool, required=False,
-                                 default=True, location='json')
         super(Drivers, self).__init__()
 
     # Выдать список всех объектов Driver
@@ -382,7 +410,7 @@ class Drivers(Resource):
     def get(self):
         drivers_list = Driver.query.all()
         data = Driver.to_dict_list(drivers_list)
-        return {"data": data}, 200
+        return {'data': data}, 200
 
     # Создать новый объект Driver
     # noinspection PyMethodMayBeStatic
@@ -392,13 +420,13 @@ class Drivers(Resource):
         # Если водитель с таким ФИО уже есть
         if Driver.query.filter_by(last_name=data['last_name'], first_name=data['first_name'],
                                   middle_name=data['middle_name']).first():
-            return 'This driver already exist. May need to delete...'
+            return {'message': "This driver already exist. May need to delete..."}, 409
 
         driver = Driver()
         driver.from_dict(data)
         db.session.add(driver)
         db.session.commit()
-        return driver.to_dict(), 200
+        return {'data': driver.to_dict()}, 201
 
 
 # Один водитель
@@ -411,14 +439,13 @@ class DriverSingle(Resource):
         self.parser.add_argument('first_name', type=str, required=False, location='json')
         self.parser.add_argument('middle_name', type=str, required=False, location='json')
         self.parser.add_argument('categories', type=list, required=False, location='json')
-        self.parser.add_argument('is_free', type=bool, required=False, location='json')
         super(DriverSingle, self).__init__()
 
     # Получить объект Driver
     # noinspection PyMethodMayBeStatic
     def get(self, driver_id):
         data = Driver.query.get_or_404(driver_id).to_dict()
-        return data, 200
+        return {'data': data}, 200
 
     # Внести изменения в объект Driver
     # noinspection PyMethodMayBeStatic
@@ -426,30 +453,28 @@ class DriverSingle(Resource):
         driver = Driver.query.get_or_404(driver_id)
         data = self.parser.parse_args()
 
-        # Если хотят изменить у Driver поле is_free (статус свободен)
-        if 'is_free' in data and driver.is_free != data['is_free']:
-            return {'message': "Drivers status can not be changed manually, it's done automatically"}, 409
-
         # Если данные ничего не изменяют
         if driver.to_dict() == data:
             return {'message': "You have changed nothing"}, 409
 
         driver.from_dict(data)
         db.session.commit()
-        return driver.to_dict(), 200
+        return {'data': driver.to_dict()}, 200
 
     # Удалить объект Driver
     # noinspection PyMethodMayBeStatic
     def delete(self, driver_id):
         driver = Driver.query.get_or_404(driver_id)
 
-        # Если водитель сейчас выполняет заказ
-        if not driver.is_free:
-            return {'message': 'This driver has an order and cannot be deleted (is not free)'}, 409
+        # Если у водитель есть активный заказ
+        applications = driver.applications
+        for application in applications:
+            if application.status == 'active':
+                return {'message': "This driver has an order and cannot be deleted (is not free)"}, 409
 
         db.session.delete(driver)
         db.session.commit()
-        return driver.to_dict(), 200
+        return {'data': driver.to_dict()}, 200
 
 
 """ Машины/Грузовики (Cars) """
@@ -468,8 +493,6 @@ class Cars(Resource):
                                  help='weight not provided', location='json')
         self.parser.add_argument('volume', type=float, required=True,
                                  help='volume not provided', location='json')
-        self.parser.add_argument('is_free', type=bool, required=False,
-                                 default=True, location='json')
         super(Cars, self).__init__()
 
     # Выдать список всех объектов Car
@@ -477,7 +500,7 @@ class Cars(Resource):
     def get(self):
         cars_list = Car.query.all()
         data = Car.to_dict_list(cars_list)
-        return data, 200
+        return {'data': data}, 200
 
     # Создать новый объект Car
     # noinspection PyMethodMayBeStatic
@@ -489,7 +512,7 @@ class Cars(Resource):
         car.from_dict(data)
         db.session.add(car)
         db.session.commit()
-        return car.to_dict(), 201
+        return {'data': car.to_dict()}, 201
 
 
 # Одна машина
@@ -501,14 +524,13 @@ class CarSingle(Resource):
         self.parser.add_argument('category', type=str, required=False, location='json')
         self.parser.add_argument('weight', type=float, required=False, location='json')
         self.parser.add_argument('volume', type=float, required=False, location='json')
-        self.parser.add_argument('is_free', type=bool, required=False, location='json')
         super(CarSingle, self).__init__()
 
     # Получить объект Car
     # noinspection PyMethodMayBeStatic
     def get(self, car_id):
         data = Car.query.get_or_404(car_id).to_dict()
-        return data, 200
+        return {'data': data}, 200
 
     # Внести изменения в объект Car
     # noinspection PyMethodMayBeStatic
@@ -516,27 +538,25 @@ class CarSingle(Resource):
         car = Car.query.get_or_404(car_id)
         data = self.parser.parse_args()
 
-        # Если хотят изменить у Car поле is_free (статус свободен)
-        if 'is_free' in data and car.is_free != data['is_free']:
-            return {"message": "Cars status can not be changed manually, it's done automatically"}, 409
-
         # Если данные ничего не изменяют
         if car.to_dict() == data:
-            return {"message": "You have changed nothing"}, 409
+            return {'message': "You have changed nothing"}, 409
 
         car.from_dict(data)
         db.session.commit()
-        return car.to_dict(), 200
+        return {'data': car.to_dict()}, 200
 
     # Удалить объект Car
     # noinspection PyMethodMayBeStatic
     def delete(self, car_id):
         car = Car.query.get_or_404(car_id)
 
-        # Если машина в данный момент используется для выполнения заказа TODO: 'is_finished' change to 'status'
-        if not car.is_free:
-            return {'message': 'This vehicle has an order and cannot be deleted (is not free)'}, 409
+        # Если машина в данный момент используется для выполнения заказа
+        applications = car.applications
+        for application in applications:
+            if application.status == 'active':
+                return {'message': "This vehicle has an order and cannot be deleted (is not free)"}, 409
 
         db.session.delete(car)
         db.session.commit()
-        return car.to_dict(), 200
+        return {'data': car.to_dict()}, 200

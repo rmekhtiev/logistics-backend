@@ -26,20 +26,43 @@ class Cargo(db.Model):
     weight = db.Column(db.Float, nullable=False)
     application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
 
-    def __repr__(self):
-        return "<Order {} (order number: {}>".format(self.nomenclature, self.cargo_id)
+    # Преобразование объекта Application в словарь
+    def to_dict(self):
+        data = {
+            'id': self.cargo_id,
+            'attributes':
+                {
+                    'nomenclature': self.nomenclature,
+                    'weight': self.weight,
+                    'application_id': self.application_id
+                }
+        }
+        return data
 
-    # Преобразование списка объектов в словарь
+    # Преобразование списка объектов Cargo в словарь
     @staticmethod
     def to_dict_list(list_data):
         data = [
             {
                 'id': data.cargo_id,
-                'nomenclature': data.nomenclature,
-                'weight': data.weight,
+                'attributes':
+                    {
+                        'nomenclature': data.nomenclature,
+                        'weight': data.weight,
+                        'application_id': data.application_id
+                    }
             }
             for data in list_data]
         return data
+
+    # Извлечение доступных not null данных из словаря в объект типа Application
+    def from_dict(self, data):
+        for field in ['nomenclature', 'weight', 'application_id']:
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
+
+    def __repr__(self):
+        return "<Order № {} (order number: {}>".format(self.nomenclature, self.cargo_id)
 
 
 class Application(db.Model):
@@ -73,38 +96,42 @@ class Application(db.Model):
     def __repr__(self):
         return "<Application {} (app number: {}>".format(self.name, self.application_id)
 
-    # Преобразование объекта в словарь
-    def to_dict(self, JOIN):
-        if JOIN:
-            data = {
-                'id': self.application_id,
-                'name': self.name,
-                'conclusion date': self.conclusion_date,
-                'route': Route.query.get(self.delivery_route).to_dict()
-            }
-        else:
-            data = {
-                'id': self.application_id,
-                'name': self.name,
-                'conclusion date': self.conclusion_date,
-                'route': self.delivery_route
-            }
+    # Преобразование объекта Application в словарь
+    def to_dict(self):
+        data = {
+            'id': self.application_id,
+            'attributes':
+                {
+                    'name': self.name,
+                    'conclusion date': self.conclusion_date,
+                    'status': self.status,
+                    'delivery_route': self.delivery_route,
+                    'shipper_id': self.shipper_id,
+                    'receiver_id': self.receiver_id,
+                }
+        }
         return data
 
-    # Преобразование списка объектов в словарь
+    # Преобразование списка объектов Application в словарь
     @staticmethod
     def to_dict_list(list_data):
         new_data = [
             {
                 'id': data.application_id,
-                'name': data.name,
-                'conclusion date': data.conclusion_date,
-                'route': data.delivery_route
+                'attributes':
+                    {
+                        'name': data.name,
+                        'conclusion date': data.conclusion_date,
+                        'status': data.status,
+                        'delivery_route': data.delivery_route,
+                        'shipper_id': data.shipper_id,
+                        'receiver_id': data.receiver_id,
+                    }
             }
             for data in list_data]
         return new_data
 
-    # Извлечение данных в объект типа Application
+    # Извлечение доступных not null данных из словаря в объект типа Application
     def from_dict(self, data):
         for field in ['name', 'conclusion_date', 'delivery_route', 'shipper_id', 'receiver_id', 'status']:
             if field in data and data[field] is not None:
@@ -127,15 +154,42 @@ class Route(db.Model):
     def __repr__(self):
         return "<Route {} (route number: {}>".format(self.delivery_address, self.route_id)
 
+    # Преобразование объекта Route в словарь
     def to_dict(self):
         data = {
             'id': self.route_id,
-            'delivery_address': self.delivery_address,
-            'shipping_address': self.shipping_address,
-            'distance': self.distance,
-            'estimated_time': self.estimated_time
+            'attributes':
+                {
+                    'delivery_address': self.delivery_address,
+                    'shipping_address': self.shipping_address,
+                    'distance': self.distance,
+                    'estimated_time': self.estimated_time
+                }
         }
         return data
+
+    # Преобразование списка объектов типа Route в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'id': data.route_id,
+                'attributes':
+                    {
+                        'delivery_address': data.delivery_address,
+                        'shipping_address': data.shipping_address,
+                        'distance': data.distance,
+                        'estimated_time': data.estimated_time
+                    }
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение доступных not null данных из словаря в объект типа Route
+    def from_dict(self, data):
+        for field in ['delivery_address', 'shipping_address', 'distance', 'estimated_time']:
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
 
 
 class Contract(db.Model):
@@ -159,10 +213,15 @@ class Contract(db.Model):
     # Преобразование объекта Contract в словарь
     def to_dict(self):
         data = {
-            'contract_id': self.contract_id,
-            'conclusion_date': self.conclusion_date,
-            'application_num': self.application_id,
-            'client_id': self.client_id
+            'id': self.contract_id,
+            'attributes':
+                {
+                    'conclusion_date': self.conclusion_date,
+                    'cost': self.cost,
+                    'payment_type': self.payment_type,
+                    'application_id': self.application_id,
+                    'client_id': self.client_id
+                }
         }
         return data
 
@@ -171,17 +230,22 @@ class Contract(db.Model):
     def to_dict_list(list_data):
         new_data = [
             {
-                'contract_id': data.contract_id,
-                'conclusion_date': data.conclusion_date,
-                'application_num': data.application_id,
-                'client_id': data.client_id
+                'id': data.contract_id,
+                'attributes':
+                    {
+                        'conclusion_date': data.conclusion_date,
+                        'cost': data.cost,
+                        'payment_type': data.payment_type,
+                        'application_id': data.application_id,
+                        'client_id': data.client_id
+                    }
             }
             for data in list_data]
         return new_data
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['conclusion_date', 'cost', 'payment_type', 'application_num', 'client_id']:
+        for field in ['conclusion_date', 'cost', 'payment_type', 'application_id', 'client_id']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
@@ -205,14 +269,17 @@ class Requisite(db.Model):
     # Преобразование объекта Requisite в словарь
     def to_dict(self):
         data = {
-            'requisite_id': self.requisite_id,
-            'bank_name': self.bank_name,
-            'BIK': self.BIK,
-            'INN': self.INN,
-            'KS': self.KS,
-            'RS': self.RS,
-            'bank_account': self.bank_account,
-            'contract_id': self.contract_id
+            'id': self.requisite_id,
+            'attributes':
+                {
+                    'bank_name': self.bank_name,
+                    'BIK': self.BIK,
+                    'INN': self.INN,
+                    'KS': self.KS,
+                    'RS': self.RS,
+                    'bank_account': self.bank_account,
+                    'contract_id': self.contract_id
+                }
         }
         return data
 
@@ -221,14 +288,17 @@ class Requisite(db.Model):
     def to_dict_list(list_data):
         new_data = [
             {
-                'requisite_id': data.requisite_id,
-                'bank_name': data.bank_name,
-                'BIK': data.BIK,
-                'INN': data.INN,
-                'KS': data.KS,
-                'RS': data.RS,
-                'bank_account`': data.bank_account,
-                'contract_id': data.contract_id,
+                'id': data.requisite_id,
+                'attributes':
+                    {
+                        'bank_name': data.bank_name,
+                        'BIK': data.BIK,
+                        'INN': data.INN,
+                        'KS': data.KS,
+                        'RS': data.RS,
+                        'bank_account': data.bank_account,
+                        'contract_id': data.contract_id
+                    }
             }
             for data in list_data]
         return new_data
@@ -261,14 +331,18 @@ class Client(db.Model):
     # Преобразование объекта Client в словарь
     def to_dict(self):
         data = {
-            'client_id': self.client_id,
-            'passport_number': self.passport_number,
-            'passport_series': self.passport_series,
-            'last_name': self.last_name,
-            'first_name': self.first_name,
-            'middle_name': self.middle_name or None,
-            'email': self.email or None,
-            'phone': self.phone
+            'id': self.client_id,
+            'attributes':
+                {
+                    'passport_number': self.passport_number,
+                    'passport_series': self.passport_series,
+                    'last_name': self.last_name,
+                    'first_name': self.first_name,
+                    'middle_name': self.middle_name or None,
+                    'email': self.email or None,
+                    'phone': self.phone,
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                }
         }
         return data
 
@@ -277,14 +351,18 @@ class Client(db.Model):
     def to_dict_list(list_data):
         new_data = [
             {
-                'client_id': data.client_id,
-                'passport_number': data.passport_number,
-                'passport_series': data.passport_series,
-                'last_name': data.last_name,
-                'first_name': data.first_name,
-                'middle_name': data.middle_name or None,
-                'email': data.email or None,
-                'phone': data.phone
+                'id': data.client_id,
+                'attributes':
+                    {
+                        'passport_number': data.passport_number,
+                        'passport_series': data.passport_series,
+                        'last_name': data.last_name,
+                        'first_name': data.first_name,
+                        'middle_name': data.middle_name or None,
+                        'email': data.email or None,
+                        'phone': data.phone,
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                    }
             }
             for data in list_data]
         return new_data
@@ -296,7 +374,7 @@ class Client(db.Model):
                 setattr(self, field, data[field])
 
     def __repr__(self):
-        return "<Client {}>".format(self.client_id)
+        return "<Client № {}>".format(self.client_id)
 
 
 class Driver(db.Model):
@@ -311,11 +389,15 @@ class Driver(db.Model):
     # Преобразование объекта Driver в словарь
     def to_dict(self):
         data = {
-            'driver_id': self.driver_id,
-            'last_name': self.last_name,
-            'first_name': self.first_name,
-            'middle_name': self.middle_name or None,
-            'categories': self.categories or None
+            'id': self.driver_id,
+            'attributes':
+                {
+                    'last_name': self.last_name,
+                    'first_name': self.first_name,
+                    'middle_name': self.middle_name or None,
+                    'categories': self.categories or None,
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                }
         }
         return data
 
@@ -324,11 +406,15 @@ class Driver(db.Model):
     def to_dict_list(list_data):
         new_data = [
             {
-                'driver_id': data.driver_id,
-                'last_name': data.first_name,
-                'first_name': data.last_name,
-                'middle_name': data.middle_name or None,
-                'categories': data.categories or None
+                'id': data.driver_id,
+                'attributes':
+                    {
+                        'last_name': data.last_name,
+                        'first_name': data.first_name,
+                        'middle_name': data.middle_name or None,
+                        'categories': data.categories or None,
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                    }
             }
             for data in list_data]
         return new_data
@@ -340,7 +426,7 @@ class Driver(db.Model):
                 setattr(self, field, data[field])
 
     def __repr__(self):
-        return "<Driver {}>".format(self.driver_id)
+        return "<Driver №{}>".format(self.driver_id)
 
 
 class Contact(db.Model):
@@ -349,10 +435,10 @@ class Contact(db.Model):
     contact_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(32), nullable=False)
     last_name = db.Column(db.String(32), nullable=False)
-    middle_name = db.Column(db.String(32))
-    position = db.Column(db.String(32))
-    organization = db.Column(db.String(64))
-    phone = db.Column(db.String(11))
+    middle_name = db.Column(db.String(32), nullable=True)
+    position = db.Column(db.String(32), nullable=True)
+    organization = db.Column(db.String(64), nullable=True)
+    phone = db.Column(db.String(11), nullable=False)
 
     """ Ссылки на Application """
     application_ship = db.relationship('Application', backref='shipper', uselist=False,
@@ -360,8 +446,51 @@ class Contact(db.Model):
     application_receive = db.relationship('Application', backref='receiver', uselist=False,
                                           foreign_keys='Application.receiver_id')
 
+    # Преобразование объекта Contact в словарь
+    def to_dict(self):
+        data = {
+            'id': self.contact_id,
+            'attributes':
+                {
+                    'last_name': self.last_name,
+                    'first_name': self.first_name,
+                    'middle_name': self.middle_name or None,
+                    'position': self.position or None,
+                    'organization': self.organization or None,
+                    'phone': self.phone,
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                }
+        }
+        return data
+
+    # Преобразование списка объектов типа Contact в список словарей
+    @staticmethod
+    def to_dict_list(list_data):
+        new_data = [
+            {
+                'id': data.contact_id,
+                'attributes':
+                    {
+                        'last_name': data.last_name,
+                        'first_name': data.first_name,
+                        'middle_name': data.middle_name or None,
+                        'position': data.position or None,
+                        'organization': data.organization or None,
+                        'phone': data.phone,
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                    }
+            }
+            for data in list_data]
+        return new_data
+
+    # Извлечение доступных not null данных из словаря в объект типа Contact
+    def from_dict(self, data):
+        for field in ['last_name', 'first_name', 'middle_name', 'position', 'organization', 'phone']:
+            if field in data and data[field] is not None:
+                setattr(self, field, data[field])
+
     def __repr__(self):
-        return "<Contact №: {}>".format(self.contact_id)
+        return "<Contact № {}>".format(self.contact_id)
 
 
 class Car(db.Model):
@@ -376,11 +505,14 @@ class Car(db.Model):
     # Преобразование объекта Car в словарь
     def to_dict(self):
         data = {
-            'car_id': self.car_id,
-            'model': self.model,
-            'category': self.category,
-            'weight': self.weight,
-            'volume': self.volume
+            'id': self.car_id,
+            'attributes':
+                {
+                    'model': self.model,
+                    'category': self.category,
+                    'weight': self.weight,
+                    'volume': self.volume
+                }
         }
         return data
 
@@ -389,11 +521,14 @@ class Car(db.Model):
     def to_dict_list(list_data):
         new_data = [
             {
-                'car_id': data.car_id,
-                'model': data.model,
-                'category': data.category,
-                'weight': data.weight,
-                'volume': data.volume
+                'id': data.car_id,
+                'attributes':
+                    {
+                        'model': data.model,
+                        'category': data.category,
+                        'weight': data.weight,
+                        'volume': data.volume
+                    }
             }
             for data in list_data]
         return new_data
@@ -405,4 +540,4 @@ class Car(db.Model):
                 setattr(self, field, data[field])
 
     def __repr__(self):
-        return "<Car №: {}>".format(self.car_id)
+        return "<Car № {}>".format(self.car_id)
