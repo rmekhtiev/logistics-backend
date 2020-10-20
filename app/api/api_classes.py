@@ -259,6 +259,32 @@ class ContractSingle(Resource):
         return {'data': contract.to_dict()}, 200
 
 
+# Посмотреть какую заявку имеет контракт
+class ContractApp(Resource):
+    # Получить объект Application from Contract
+    # noinspection PyMethodMayBeStatic
+    def get(self, contract_id):
+        contract = Contact.query.get_or_404(contract_id)
+        if contract.application is not None:
+            app = contract.application
+            return {'data': app.to_dict()}, 200
+        else:
+            return {'message': "This contract hasn't got an app"}, 409
+
+
+# Посмотреть какого клиента имеет контракт
+class ContractClient(Resource):
+    # Получить объект Application from Contract
+    # noinspection PyMethodMayBeStatic
+    def get(self, contract_id):
+        contract = Contact.query.get_or_404(contract_id)
+        if contract.client is not None:
+            client = contract.client
+            return {'data': client.to_dict()}, 200
+        else:
+            return {'message': "This contract hasn't got a client"}, 409
+
+
 """ Заявки (Application) """
 
 
@@ -560,3 +586,406 @@ class CarSingle(Resource):
         db.session.delete(car)
         db.session.commit()
         return {'data': car.to_dict()}, 200
+
+
+""" Реквизиты """
+
+
+# Все реквизиты
+class Requisites(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('bank_name', type=str, required=True,
+                                 help='bank_name not provided', location='json')
+        self.parser.add_argument('bank_account', type=str, required=True,
+                                 help='bank_account name not provided', location='json')
+        self.parser.add_argument('BIK', type=str, required=True,
+                                 help='BIK not provided', location='json')
+        self.parser.add_argument('INN', type=str, required=True,
+                                 help='INN not provided', location='json')
+        self.parser.add_argument('KPP', type=str, required=True,
+                                 help='KSS not provided', location='json')
+        self.parser.add_argument('KS', type=str, required=True,
+                                 help='KS not provided', location='json')
+        self.parser.add_argument('RS', type=str, required=True,
+                                 help='RS not provided', location='json')
+        self.parser.add_argument('contract_id', type=int, required=False, location='json')
+        super(Requisites, self).__init__()
+
+    # Выдать список всех объектов Requisite
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        requisites_list = Requisite.query.all()
+        data = Requisite.to_dict_list(requisites_list)
+        return {'data': data}, 200
+
+    # Создать новый объект Requisite
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Если такого контракта не существует или контракт уже выполнен
+        if data['contract_id'] is not None:
+            if Contract.query.get(data['contract_id']) is None:
+                return {'message': "No such contract"}, 409
+            if Contract.query.get(data['contract_id']).application.status == 'finished':
+                return {'message': "Cannot add a requisite to a finished contract"}, 409
+
+        requisite = Requisite()
+        requisite.from_dict(data)
+        db.session.add(requisite)
+        db.session.commit()
+        return {'data': requisite.to_dict()}, 201
+
+
+# Один реквизит
+class RequisiteSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('bank_name', type=str, required=False, location='json')
+        self.parser.add_argument('bank_account', type=str, required=False, location='json')
+        self.parser.add_argument('BIK', type=str, required=False, location='json')
+        self.parser.add_argument('INN', type=str, required=False, location='json')
+        self.parser.add_argument('KPP', type=str, required=False, location='json')
+        self.parser.add_argument('KS', type=str, required=False, location='json')
+        self.parser.add_argument('RS', type=str, required=False, location='json')
+        self.parser.add_argument('contract_id', type=int, required=False, location='json')
+        super(RequisiteSingle, self).__init__()
+
+    # Получить объект Requisite
+    # noinspection PyMethodMayBeStatic
+    def get(self, requisite_id):
+        data = Requisite.query.get_or_404(requisite_id).to_dict()
+        return {'data': data}, 200
+
+    # Внести изменения в объект Requisite
+    # noinspection PyMethodMayBeStatic
+    def put(self, requisite_id):
+        requisite = Requisite.query.get_or_404(requisite_id)
+        data = self.parser.parse_args()
+
+        # Если такого контракта не существует или контракт уже выполнен
+        if data['contract_id'] is not None:
+            if Contract.query.get(data['contract_id']) is None:
+                return {'message': "No such contract"}, 409
+            if Contract.query.get(data['contract_id']).application.status == 'finished':
+                return {'message': "Cannot add a requisite to a finished contract"}, 409
+
+        # Если данные ничего не изменяют
+        if requisite.to_dict() == data:
+            return {'message': "You have changed nothing"}, 409
+
+        requisite.from_dict(data)
+        db.session.commit()
+        return {'data': requisite.to_dict()}, 200
+
+    # Удалить объект Requisite
+    # noinspection PyMethodMayBeStatic
+    def delete(self, requisite_id):
+        requisite = Requisite.query.get_or_404(requisite_id)
+
+        db.session.delete(requisite)
+        db.session.commit()
+        return {'data': requisite.to_dict()}, 200
+
+
+""" Контакты """
+
+
+# Все контакты
+class Contacts(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('last_name', type=str, required=True,
+                                 help='last name not provided', location='json')
+        self.parser.add_argument('first_name', type=str, required=True,
+                                 help='first name not provided', location='json')
+        self.parser.add_argument('middle_name', type=str, required=False, location='json')
+        self.parser.add_argument('organization', type=str, required=False, location='json')
+        self.parser.add_argument('position', type=str, required=False, location='json')
+        self.parser.add_argument('phone', type=str, required=True,
+                                 help='phone not provided', location='json')
+        super(Contacts, self).__init__()
+
+    # Выдать список всех объектов Contact
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        contacts_list = Contact.query.all()
+        data = Client.to_dict_list(contacts_list)
+        return {'data': data}, 200
+
+    # Создать новый объект Contact
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Проверка на правильность телефонного номера
+        if len(data['phone']) > 11 or not data['phone'][0] == '7':
+            return {'message': "Incorrect phone format"}, 409
+
+        # Если контакт с таким телефоном уже есть
+        if Contact.query.filter_by(phone=data['phone']).first():
+            return {'message': "Contact with this phone already exists"}, 409
+
+        contact = Contact()
+        contact.from_dict(data)
+        db.session.add(contact)
+        db.session.commit()
+        data = contact.to_dict()
+        return {'data': data}, 201
+
+
+# Один контакт
+class ContactSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('last_name', type=str, required=False, location='json')
+        self.parser.add_argument('first_name', type=str, required=False, location='json')
+        self.parser.add_argument('middle_name', type=str, required=False, location='json')
+        self.parser.add_argument('organization', type=str, required=False, location='json')
+        self.parser.add_argument('position', type=str, required=False, location='json')
+        self.parser.add_argument('phone', type=str, required=False, location='json')
+        super(ContactSingle, self).__init__()
+
+    # Получить объект Contact
+    # noinspection PyMethodMayBeStatic
+    def get(self, contact_id):
+        contact = Contact.query.get_or_404(contact_id)
+        data = contact.to_dict()
+        return {'data': data}, 200
+
+    # Внести изменения в объект Contact
+    # noinspection PyMethodMayBeStatic
+    def put(self, contact_id):
+        contact = Contact.query.get_or_404(contact_id)
+        data = self.parser.parse_args()
+
+        # Проверка на правильность телефонного номера
+        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] == '7'):
+            return {'message': "incorrect phone format"}, 409
+
+        # Если контакт с таким телефоном уже есть
+        if Contact.query.filter_by(phone=data['phone']).first():
+            return {'message': "Contact with this phone already exists"}, 409
+
+        contact.from_dict(data)
+        db.session.commit()
+        return {'data': contact.to_dict()}, 200
+
+    # Удалить объект Contact
+    # noinspection PyMethodMayBeStatic
+    def delete(self, contact_id):
+        contact = Contact.query.get_or_404(contact_id)
+
+        db.session.delete(contact)
+        db.session.commit()
+        data = contact.to_dict()
+        return {'data': data}, 200
+
+
+# Информация о том какой груз (заявку) ожидает контакт
+class ContactApp(Resource):
+    # Получить объект Application from Contact
+    # noinspection PyMethodMayBeStatic
+    def get(self, contact_id):
+        contact = Contact.query.get_or_404(contact_id)
+
+        # Проверяем есть ли у контакта привязка к заявке
+        if contact.application_receive is not None:
+            app = contact.application_receive
+            return {'data': app.to_dict()}, 200
+        if contact.application_shipp is not None:
+            app = contact.application_shipp
+            return {'data': app.to_dict()}, 200
+        else:
+            return {'message': "This contact isn't linked to an app"}, 409
+
+
+""" Маршруты """
+
+
+# Список маршрутов
+class Routes(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('delivery_address', type=str, required=True,
+                                 help='delivery_address not provided', location='json')
+        self.parser.add_argument('shipping_address', type=str, required=True,
+                                 help='shipping_address not provided', location='json')
+        self.parser.add_argument('distance', type=float, required=False, location='json')
+        self.parser.add_argument('estimated_time', type=int, required=False, location='json')
+        super(Routes, self).__init__()
+
+    # Выдать список всех объектов Route
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        routes_list = Route.query.all()
+        data = Route.to_dict_list(routes_list)
+        return {'data': data}, 200
+
+    # Создать новый объект Route
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Здесь проверку на что-либо делать незачем
+
+        route = Route()
+        route.from_dict(data)
+        db.session.add(route)
+        db.session.commit()
+        data = route.to_dict()
+        return {'data': data}, 201
+
+
+# Один маршрут
+class RouteSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('delivery_address', type=str, required=False, location='json')
+        self.parser.add_argument('shipping_address', type=str, required=False, location='json')
+        self.parser.add_argument('distance', type=float, required=False, location='json')
+        self.parser.add_argument('estimated_time', type=int, required=False, location='json')
+        super(RouteSingle, self).__init__()
+
+    # Получить объект Route
+    # noinspection PyMethodMayBeStatic
+    def get(self, route_id):
+        route = Route.query.get_or_404(route_id)
+        data = route.to_dict()
+        return {'data': data}, 200
+
+    # Внести изменения в объект Route
+    # noinspection PyMethodMayBeStatic
+    def put(self, route_id):
+        route = Route.query.get_or_404(route_id)
+        data = self.parser.parse_args()
+
+        # Здесь проверку на что-либо делать незачем
+
+        route.from_dict(data)
+        db.session.commit()
+        return {'data': route.to_dict()}, 200
+
+    # Удалить объект Route
+    # noinspection PyMethodMayBeStatic
+    def delete(self, route_id):
+        route = Route.query.get_or_404(route_id)
+
+        db.session.delete(route)
+        db.session.commit()
+        data = route.to_dict()
+        return {'data': data}, 200
+
+
+# Посмотреть к какой заявке привязан маршрут
+class RouteApp(Resource):
+    # Получить объект Application from Route
+    # noinspection PyMethodMayBeStatic
+    def get(self, route_id):
+        route = Route.query.get_or_404(route_id)
+        if route.application is not None:
+            app = route.application
+            return {'data': app.to_dict()}, 200
+        else:
+            return {'message': "This route hasn't got an app"}, 409
+
+
+""" ГРУЗЫ 200 """
+
+
+# Список всех грузов
+class Cargos(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('nomenclature', type=str, required=True,
+                                 help='nomenclature not provided', location='json')  # Что такое 'nomenclature'??
+        self.parser.add_argument('weight', type=float, required=True,
+                                 help='weight not provided', location='json')
+        self.parser.add_argument('application_id', type=int, required=False, location='json')
+        super(Cargos, self).__init__()
+
+    # Выдать список всех объектов Cargo
+    # noinspection PyMethodMayBeStatic
+    def get(self):
+        cargos_list = Cargo.query.all()
+        data = Cargo.to_dict_list(cargos_list)
+        return {'data': data}, 200
+
+    # Создать новый объект Cargo
+    # noinspection PyMethodMayBeStatic
+    def post(self):
+        data = self.parser.parse_args()
+
+        # Здесь проверку на что-либо делать незачем
+
+        cargo = Cargo()
+        cargo.from_dict(data)
+        db.session.add(cargo)
+        db.session.commit()
+        data = cargo.to_dict()
+        return {'data': data}, 201
+
+
+# Один груз
+class CargoSingle(Resource):
+    # Настройка запроса request и его полей
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('nomenclature', type=str, required=False, location='json')  # Что такое 'nomenclature'?
+        self.parser.add_argument('weight', type=float, required=False, location='json')
+        self.parser.add_argument('application_id', type=int, required=False, location='json')
+        super(CargoSingle, self).__init__()
+
+    # Получить объект Cargo
+    # noinspection PyMethodMayBeStatic
+    def get(self, cargo_id):
+        cargo = Cargo.query.get_or_404(cargo_id)
+        data = cargo.to_dict()
+        return {'data': data}, 200
+
+    # Внести изменения в объект Cargo
+    # noinspection PyMethodMayBeStatic
+    def put(self, cargo_id):
+        cargo = Cargo.query.get_or_404(cargo_id)
+        data = self.parser.parse_args()
+
+        # Здесь проверку на что-либо делать незачем
+
+        cargo.from_dict(data)
+        db.session.commit()
+        return {'data': cargo.to_dict()}, 200
+
+    # Удалить объект Cargo
+    # noinspection PyMethodMayBeStatic
+    def delete(self, cargo_id):
+        cargo = Cargo.query.get_or_404(cargo_id)
+
+        # Если удаляют груз, заявка к которой он прикрепен уже выполнена
+        if cargo.application is not None and cargo.application.status == 'finished':
+            return {'message': "Cannot delete cargo that has a finished app"}
+
+        db.session.delete(cargo)
+        db.session.commit()
+        data = cargo.to_dict()
+        return {'data': data}, 200
+
+
+# Посмотреть к какой заявке привязан груз
+class CargoApp(Resource):
+    # Получить объект Application from Cargo
+    # noinspection PyMethodMayBeStatic
+    def get(self, cargo_id):
+        cargo = Route.query.get_or_404(cargo_id)
+        if cargo.application is not None:
+            app = cargo.application
+            return {'data': app.to_dict()}, 200
+        else:
+            return {'message': "This cargo isn't in an app"}, 409
