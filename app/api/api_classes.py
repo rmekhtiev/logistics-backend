@@ -454,7 +454,7 @@ class Drivers(Resource):
             return {'message': "This driver already exist. May need to delete..."}, 409
 
         # Проверка телефона
-        if len(data['phone']) > 11 or not data['phone'][0] == '7':
+        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']):
             return {'message': "Incorrect phone format"}, 409
 
         if Driver.query.filter_by(phone=data['phone']).first():
@@ -777,11 +777,12 @@ class ContactSingle(Resource):
         data = self.parser.parse_args()
 
         # Проверка на правильность телефонного номера
-        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] == '7'):
+        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']):
             return {'message': "incorrect phone format"}, 409
 
         # Если контакт с таким телефоном уже есть
-        if Contact.query.filter_by(phone=data['phone']).first():
+        _tempContact = Contact.query.filter_by(phone=data['phone']).first()
+        if contact.contact_id != _tempContact.contact_id:
             return {'message': "Contact with this phone already exists"}, 409
 
         contact.from_dict(data)
@@ -982,7 +983,7 @@ class CargoSingle(Resource):
 
         # Если удаляют груз, заявка к которой он прикрепен уже выполнена
         if cargo.application is not None and cargo.application.status == 'finished':
-            return {'message': "Cannot delete cargo that has a finished app"}
+            return {'message': "Cannot delete cargo that has a finished app"}, 409
 
         db.session.delete(cargo)
         db.session.commit()
