@@ -64,7 +64,7 @@ class Clients(Resource):
             return {'message': "Client with that passport data already exists"}, 409
 
         # Проверка на правильность телефонного номера
-        if len(data['phone']) > 11 or data['phone'][0] is not '7':
+        if len(data['phone']) > 11 or data['phone'][0] != '7':
             return {'message': "Incorrect phone format"}, 409
         # Если клиент с таким телефоном уже есть
         if Client.query.filter_by(phone=data['phone']).first():
@@ -110,7 +110,7 @@ class ClientSingle(Resource):
             return {'message': "Client with that passport data already exists"}, 409
 
         # Проверка на правильность телефонного номера
-        if len(data['phone']) > 11 or data['phone'][0] is not '7':
+        if len(data['phone']) > 11 or data['phone'][0] != '7':
             return {'message': "incorrect phone format"}, 409
 
         # Если клиент с таким телефоном уже есть
