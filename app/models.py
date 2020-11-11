@@ -103,7 +103,7 @@ class Application(db.Model):
             'attributes':
                 {
                     'name': self.name,
-                    'conclusion date': self.conclusion_date,
+                    'conclusion date': str(self.conclusion_date),
                     'status': self.status,
                     'delivery_route': self.delivery_route,
                     'shipper_id': self.shipper_id,
@@ -121,7 +121,7 @@ class Application(db.Model):
                 'attributes':
                     {
                         'name': data.name,
-                        'conclusion date': data.conclusion_date,
+                        'conclusion date': str(data.conclusion_date),
                         'status': data.status,
                         'delivery_route': data.delivery_route,
                         'shipper_id': data.shipper_id,
@@ -216,8 +216,8 @@ class Contract(db.Model):
             'id': self.contract_id,
             'attributes':
                 {
-                    'conclusion_date': self.conclusion_date,
-                    'cost': self.cost,
+                    'conclusion_date': str(self.conclusion_date),
+                    'cost': str(self.cost),
                     'payment_type': self.payment_type,
                     'application_id': self.application_id,
                     'client_id': self.client_id
@@ -233,8 +233,8 @@ class Contract(db.Model):
                 'id': data.contract_id,
                 'attributes':
                     {
-                        'conclusion_date': data.conclusion_date,
-                        'cost': data.cost,
+                        'conclusion_date': str(data.conclusion_date),
+                        'cost': str(data.cost),
                         'payment_type': data.payment_type,
                         'application_id': data.application_id,
                         'client_id': data.client_id
