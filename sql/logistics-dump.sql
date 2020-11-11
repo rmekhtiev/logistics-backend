@@ -529,11 +529,11 @@ COPY public.alembic_version (version_num) FROM stdin;
 --
 
 COPY public.applications (application_id, name, conclusion_date, delivery_route, shipper_id, receiver_id, status) FROM stdin;
-1	Доставка чего-то	2020-11-20	6	\N	\N	\N
-3	Дилдо (100 штук)	2020-11-30	2	\N	\N	\N
-4	Joint запрос	2020-11-25	1	\N	\N	\N
 5	Доставка огромной коллекции разноцветных членов на присосках со встроенным вибратором	2020-10-23	3	2	2	active
-2	Телевизор	2020-12-12	5	\N	\N	finished
+2	Телевизор	2020-12-12	5	5	5	finished
+3	Дилдо (100 штук)	2020-11-30	2	4	4	active
+4	Joint запрос	2020-11-25	1	3	3	active
+1	Доставка чего-то	2020-11-20	6	1	1	active
 \.
 
 
@@ -555,8 +555,10 @@ COPY public.cargos (cargo_id, nomenclature, weight, application_id) FROM stdin;
 
 COPY public.cars (car_id, weight, volume, model, category) FROM stdin;
 1	3500	25	MAN	D
-3	2500	15	FOX	D
 4	3500	21	MAN	D
+3	2500	30	FOX	D
+5	2000	15	Mercedes	E
+6	1800	18	Mercedes	E
 \.
 
 
@@ -566,7 +568,10 @@ COPY public.cars (car_id, weight, volume, model, category) FROM stdin;
 
 COPY public.cars_applications (car_id, application_id, cars_applications_id) FROM stdin;
 1	5	1
-1	2	2
+6	2	2
+3	1	3
+4	3	4
+5	4	5
 \.
 
 
@@ -575,9 +580,10 @@ COPY public.cars_applications (car_id, application_id, cars_applications_id) FRO
 --
 
 COPY public.clients (client_id, passport_number, passport_series, first_name, last_name, middle_name, email, phone) FROM stdin;
-1	4526	588761	Афонт\n	Семендяев	Константинович	afont@gmail.com	79854751892
 2	5819	499601	Евстрахий	Полено	Петрович	EfstrahTheLog@mail.ru	79162185692
-3	4478	512485	Аббоссали	Мовсисян	Мунарбекович\n	abbossali1976@mail.ru	79856832385
+4	7613	899417	Бибиб	Бердымухамедов	Мяликгулыевич	dark_knight@vostok.com	79253859851
+1	4526	588761	Афонт	Семендяев	Константинович	afont@gmail.com	79854751892
+3	4478	512485	Аббоссали	Мовсисян	Мунарбекович	abbossali1976@mail.ru	79856832385
 \.
 
 
@@ -586,8 +592,13 @@ COPY public.clients (client_id, passport_number, passport_series, first_name, la
 --
 
 COPY public.contacts (contact_id, first_name, last_name, middle_name, "position", organization, phone) FROM stdin;
-1	Максим	Бобров\n	Петрович	\N	\N	\N
-2	Артём\n	Студнев	Викторович\n	\N	\N	\N
+3	Гипопотам	Патопов	Потапович	Директор	ООО "Резервуар"	89851177813
+4	Зевала	Отрыжкин	Алексеевич	Проходимец	ОПГ "Восточное"	89161762445
+5	Владлен	Баррикадович	Ульянов	Революционер	\N	89855623891
+2	Артём\n	Студнев	Викторович\n	Сторож	\N	89165069855
+1	Максим	Бобров\n	Петрович	Лесоруб	\N	89160482409
+7	Олег	Капустин	Семёнович	Разнорабочий	\N	89168088379
+6	Джо-Биб	Маглиб	Младший	Налётчик	\N	89850978019
 \.
 
 
@@ -596,6 +607,10 @@ COPY public.contacts (contact_id, first_name, last_name, middle_name, "position"
 --
 
 COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_id, application_id) FROM stdin;
+1	2020-11-04	48685.92	Карта	1	5
+2	2020-11-28	112500.00	Карта	2	4
+3	2020-11-01	85650.00	Нал	3	3
+4	2020-09-18	19999.99	Карта	4	2
 \.
 
 
@@ -605,7 +620,10 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 
 COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, phone) FROM stdin;
 8	Пётр	Водило	Азбекович	{'A','B','D'}	79164152615
-2	Атманда	Пивницкий	Мурзоевич	{'A','B','D','E','F'}	79857482464
+2	Атманда	Пивницкий	Мурзоевич	{'B','D','E','F'}	79857482464
+9	Хайитбой	Зокиржон угли	Хамзанович	{'A','B','D','E','F'}	79259569153
+10	Абдумажит	Вахобович	Мухмагомедович	{'B','D','E'}	79168684849
+11	Срапион	Мовсисян	Ваники	{'B','D'}	89858591451
 \.
 
 
@@ -615,6 +633,10 @@ COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, 
 
 COPY public.drivers_applications (driver_id, application_id, drivers_applications_id) FROM stdin;
 2	5	2
+8	2	3
+9	3	4
+10	4	5
+11	1	6
 \.
 
 
@@ -623,6 +645,10 @@ COPY public.drivers_applications (driver_id, application_id, drivers_application
 --
 
 COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS", bank_account, contract_id) FROM stdin;
+2	ПАО СБЕРБАНК	044525225	7707083893	773601001	30101810400000000225	1485	76965594261126261716	1
+3	ОАО ВТБ	740551822	7707015127	773850152	30108559100000000857	6558	75572169756+96436874	2
+4	ООО ДжетМани	152850124	7707096124	773956124	30107592500000000982	6472	68418621653546874198	3
+5	ООО АльфаБанк	850168842	7707085015	773755519	30107125400000000428	1537	35896843557869168685	4
 \.
 
 
@@ -631,12 +657,12 @@ COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS"
 --
 
 COPY public.routes (route_id, delivery_address, shipping_address, distance, estimated_time) FROM stdin;
-1	asd	adas	\N	\N
 2	Шоссе Энтузиастов	Дом Семёна	245	60
 3	Дом Семёна	Дом Руслана	8500	240
 4	Дом Руслана	РТУ МИРЭА	4500	78
 5	Дом Семёна	Подвал МГУПИ	6700	123
-6	Откуда-то	Куда-то	\N	\N
+6	Откуда-то	Куда-то	440	45
+1	asd	adas	951	147
 \.
 
 
@@ -658,56 +684,56 @@ SELECT pg_catalog.setval('public.cargos_cargo_id_seq', 1, false);
 -- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.cars_applications_cars_applications_id_seq', 2, true);
+SELECT pg_catalog.setval('public.cars_applications_cars_applications_id_seq', 5, true);
 
 
 --
 -- Name: cars_car_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.cars_car_id_seq', 4, true);
+SELECT pg_catalog.setval('public.cars_car_id_seq', 6, true);
 
 
 --
 -- Name: clients_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.clients_client_id_seq', 1, false);
+SELECT pg_catalog.setval('public.clients_client_id_seq', 4, true);
 
 
 --
 -- Name: contacts_contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.contacts_contact_id_seq', 2, true);
+SELECT pg_catalog.setval('public.contacts_contact_id_seq', 7, true);
 
 
 --
 -- Name: contracts_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.contracts_contract_id_seq', 1, false);
+SELECT pg_catalog.setval('public.contracts_contract_id_seq', 4, true);
 
 
 --
 -- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 2, true);
+SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 6, true);
 
 
 --
 -- Name: drivers_driver_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_driver_id_seq', 8, true);
+SELECT pg_catalog.setval('public.drivers_driver_id_seq', 11, true);
 
 
 --
 -- Name: requisites_requisite_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requisites_requisite_id_seq', 1, false);
+SELECT pg_catalog.setval('public.requisites_requisite_id_seq', 5, true);
 
 
 --
