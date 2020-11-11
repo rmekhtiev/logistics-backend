@@ -385,6 +385,7 @@ class Driver(db.Model):
     last_name = db.Column(db.String(32), nullable=False)
     middle_name = db.Column(db.String(32), nullable=True)
     categories = db.Column(ARRAY(db.String()), nullable=True)
+    phone = db.Column(db.String(11), nullable=True)
 
     # Преобразование объекта Driver в словарь
     def to_dict(self):
@@ -396,7 +397,8 @@ class Driver(db.Model):
                     'first_name': self.first_name,
                     'middle_name': self.middle_name or None,
                     'categories': self.categories or None,
-                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name]),
+                    'phone': self.phone or None
                 }
         }
         return data
@@ -413,7 +415,8 @@ class Driver(db.Model):
                         'first_name': data.first_name,
                         'middle_name': data.middle_name or None,
                         'categories': data.categories or None,
-                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name]),
+                        'phone': data.phone or None
                     }
             }
             for data in list_data]
@@ -421,12 +424,12 @@ class Driver(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Driver
     def from_dict(self, data):
-        for field in ['last_name', 'first_name', 'middle_name', 'categories']:
+        for field in ['last_name', 'first_name', 'middle_name', 'categories', 'phone']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
     def __repr__(self):
-        return "<Driver №{}>".format(self.driver_id)
+        return "<Driver № {}>".format(self.driver_id)
 
 
 class Contact(db.Model):
@@ -438,7 +441,7 @@ class Contact(db.Model):
     middle_name = db.Column(db.String(32), nullable=True)
     position = db.Column(db.String(32), nullable=True)
     organization = db.Column(db.String(64), nullable=True)
-    phone = db.Column(db.String(11), nullable=False)
+    phone = db.Column(db.String(11), nullable=True)
 
     """ Ссылки на Application """
     application_ship = db.relationship('Application', backref='shipper', uselist=False,

@@ -5,6 +5,9 @@ from app.models import *
 """ Хуй пойми что, Семён пидарас """
 
 
+# TODO: Добавить телефон водителю Driver
+
+
 class HelloWorld(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self):
@@ -429,6 +432,8 @@ class Drivers(Resource):
                                  default=None, location='json')
         self.parser.add_argument('categories', type=list, required=True,
                                  help='categories not provided', location='json')
+        self.parser.add_argument('phone', type=str, required=True,
+                                 help='drivers phone not provided', location='json')
         super(Drivers, self).__init__()
 
     # Выдать список всех объектов Driver
@@ -447,6 +452,13 @@ class Drivers(Resource):
         if Driver.query.filter_by(last_name=data['last_name'], first_name=data['first_name'],
                                   middle_name=data['middle_name']).first():
             return {'message': "This driver already exist. May need to delete..."}, 409
+
+        # Проверка телефона
+        if len(data['phone']) > 11 or not data['phone'][0] == '7':
+            return {'message': "Incorrect phone format"}, 409
+
+        if Driver.query.filter_by(phone=data['phone']).first():
+            return {'message': "Driver with this phone already exists"}, 409
 
         driver = Driver()
         driver.from_dict(data)
@@ -714,7 +726,7 @@ class Contacts(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self):
         contacts_list = Contact.query.all()
-        data = Client.to_dict_list(contacts_list)
+        data = Contact.to_dict_list(contacts_list)
         return {'data': data}, 200
 
     # Создать новый объект Contact
