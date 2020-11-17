@@ -24,7 +24,10 @@ class Cargo(db.Model):
     cargo_id = db.Column(db.Integer, primary_key=True)
     nomenclature = db.Column(db.String(64), nullable=False)
     weight = db.Column(db.Float, nullable=False)
-    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'), nullable=True)
+
+    # Словарь полей для корректного использования setattr
+    fields = {'nomenclature': not None, 'weight': not None, 'application_id': None}
 
     # Преобразование объекта Application в словарь
     def to_dict(self):
@@ -57,9 +60,13 @@ class Cargo(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Application
     def from_dict(self, data):
-        for field in ['nomenclature', 'weight', 'application_id']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Order № {} (order number: {}>".format(self.nomenclature, self.cargo_id)
@@ -72,7 +79,7 @@ class Application(db.Model):
     application_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
-    status = db.Column(db.String(9), default='active', nullable=True)
+    status = db.Column(db.String(9), default='active', nullable=False)
 
     """ Маршрут """
     delivery_route = db.Column(db.Integer, db.ForeignKey('routes.route_id'))
@@ -95,6 +102,15 @@ class Application(db.Model):
 
     def __repr__(self):
         return "<Application {} (app number: {}>".format(self.name, self.application_id)
+
+    fields = {
+        'name': not None,
+        'conclusion_date': not None,
+        'delivery_route': None,
+        'shipper_id': None,
+        'receiver_id': None,
+        'status': not None
+    }
 
     # Преобразование объекта Application в словарь
     def to_dict(self):
@@ -133,26 +149,33 @@ class Application(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Application
     def from_dict(self, data):
-        for field in ['name', 'conclusion_date', 'delivery_route', 'shipper_id', 'receiver_id', 'status']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
 
 class Route(db.Model):
     __tablename__ = 'routes'
 
     route_id = db.Column(db.Integer, primary_key=True)
-    delivery_address = db.Column(db.String(128), nullable=False)
-    shipping_address = db.Column(db.String(128), nullable=False)
+    delivery_address = db.Column(db.String(128), nullable=True)
+    shipping_address = db.Column(db.String(128), nullable=True)
     distance = db.Column(db.Float, nullable=True)
     estimated_time = db.Column(db.Integer, nullable=True)
 
-    # def __init__(self, delivery_address, shipping_address):
-    #     self.delivery_address = delivery_address
-    #     self.shipping_address = shipping_address
-
     def __repr__(self):
         return "<Route {} (route number: {}>".format(self.delivery_address, self.route_id)
+
+    fields = {
+        'delivery_address': None,
+        'shipping_address': None,
+        'distance': None,
+        'estimated_time': None
+    }
 
     # Преобразование объекта Route в словарь
     def to_dict(self):
@@ -187,9 +210,13 @@ class Route(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Route
     def from_dict(self, data):
-        for field in ['delivery_address', 'shipping_address', 'distance', 'estimated_time']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
 
 class Contract(db.Model):
@@ -198,17 +225,26 @@ class Contract(db.Model):
     contract_id = db.Column(db.Integer, primary_key=True)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
     cost = db.Column(db.Numeric(10, 2), nullable=False)
-    payment_type = db.Column(db.String(32), default='банковский перевод', nullable=True)
+    payment_type = db.Column(db.String(32), default='Банковский перевод', nullable=True)
 
-    """Реквизиты"""
-    requisite = db.relationship('Requisite', backref='contracts', lazy='dynamic')
+    """ Реквизит """
+    requisite_id = db.Column(db.Integer, db.ForeignKey('requisites.requisite_id'), nullable=True)
 
-    """Заявка"""
-    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'))
+    """ Заявка """
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'), nullable=True)
     application = db.relationship('Application', backref='contract', uselist=False)
 
-    """Клиент"""
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
+    """ Клиент """
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'), nullable=False)
+
+    fields = {
+        'conclusion_date': None,
+        'cost': None,
+        'payment_type': not None,
+        'application_id': not None,
+        'client_id': not None,
+        'requisite_id': None
+    }
 
     # Преобразование объекта Contract в словарь
     def to_dict(self):
@@ -220,7 +256,8 @@ class Contract(db.Model):
                     'cost': str(self.cost),
                     'payment_type': self.payment_type,
                     'application_id': self.application_id,
-                    'client_id': self.client_id
+                    'client_id': self.client_id,
+                    'requisite_id': self.requisite_id
                 }
         }
         return data
@@ -237,7 +274,8 @@ class Contract(db.Model):
                         'cost': str(data.cost),
                         'payment_type': data.payment_type,
                         'application_id': data.application_id,
-                        'client_id': data.client_id
+                        'client_id': data.client_id,
+                        'requisite_id': data.requisite_id
                     }
             }
             for data in list_data]
@@ -245,9 +283,13 @@ class Contract(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['conclusion_date', 'cost', 'payment_type', 'application_id', 'client_id']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Contract {}>".format(self.contract_id)
@@ -264,7 +306,9 @@ class Requisite(db.Model):
     KS = db.Column(db.String(20), nullable=False)
     RS = db.Column(db.String(20), nullable=False)
     bank_account = db.Column(db.String(20), nullable=False)
-    contract_id = db.Column(db.Integer, db.ForeignKey('contracts.contract_id'))
+
+    """ Список контрактов у реквизита многие-ко-одному"""
+    contracts = db.relationship('Contract', backref='requisite', lazy='dynamic')
 
     # Преобразование объекта Requisite в словарь
     def to_dict(self):
@@ -277,8 +321,7 @@ class Requisite(db.Model):
                     'INN': self.INN,
                     'KS': self.KS,
                     'RS': self.RS,
-                    'bank_account': self.bank_account,
-                    'contract_id': self.contract_id
+                    'bank_account': self.bank_account
                 }
         }
         return data
@@ -296,8 +339,7 @@ class Requisite(db.Model):
                         'INN': data.INN,
                         'KS': data.KS,
                         'RS': data.RS,
-                        'bank_account': data.bank_account,
-                        'contract_id': data.contract_id
+                        'bank_account': data.bank_account
                     }
             }
             for data in list_data]
@@ -305,7 +347,7 @@ class Requisite(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Requisite
     def from_dict(self, data):
-        for field in ['bank_name', 'BIK', 'INN', 'KS', 'RS', 'bank_account', 'contract_id']:
+        for field in ['bank_name', 'BIK', 'INN', 'KS', 'RS', 'bank_account']:
             if field in data and data[field] is not None:
                 setattr(self, field, data[field])
 
@@ -327,6 +369,16 @@ class Client(db.Model):
 
     """ Список контрактов у клиента многие-ко-одному """
     contracts = db.relationship('Contract', backref='client', lazy='dynamic')
+
+    fields = {
+        'passport_number': not None,
+        'passport_series': not None,
+        'last_name': not None,
+        'first_name': not None,
+        'middle_name': None,
+        'email': None,
+        'phone': not None
+    }
 
     # Преобразование объекта Client в словарь
     def to_dict(self):
@@ -369,9 +421,13 @@ class Client(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Client
     def from_dict(self, data):
-        for field in ['passport_number', 'passport_series', 'last_name', 'first_name', 'middle_name', 'email', 'phone']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Client № {}>".format(self.client_id)
@@ -384,8 +440,16 @@ class Driver(db.Model):
     first_name = db.Column(db.String(32), nullable=False)
     last_name = db.Column(db.String(32), nullable=False)
     middle_name = db.Column(db.String(32), nullable=True)
-    categories = db.Column(ARRAY(db.String()), nullable=True)
-    phone = db.Column(db.String(11), nullable=True)
+    categories = db.Column(ARRAY(db.String()), nullable=False)
+    phone = db.Column(db.String(11), nullable=False)
+
+    fields = {
+        'last_name': not None,
+        'first_name': not None,
+        'middle_name': None,
+        'categories': not None,
+        'phone': not None
+    }
 
     # Преобразование объекта Driver в словарь
     def to_dict(self):
@@ -424,9 +488,13 @@ class Driver(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Driver
     def from_dict(self, data):
-        for field in ['last_name', 'first_name', 'middle_name', 'categories', 'phone']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Driver № {}>".format(self.driver_id)
@@ -441,13 +509,22 @@ class Contact(db.Model):
     middle_name = db.Column(db.String(32), nullable=True)
     position = db.Column(db.String(32), nullable=True)
     organization = db.Column(db.String(64), nullable=True)
-    phone = db.Column(db.String(11), nullable=True)
+    phone = db.Column(db.String(11), nullable=False)
 
     """ Ссылки на Application """
     application_ship = db.relationship('Application', backref='shipper', uselist=False,
                                        foreign_keys='Application.shipper_id')
     application_receive = db.relationship('Application', backref='receiver', uselist=False,
                                           foreign_keys='Application.receiver_id')
+
+    fields = {
+        'last_name': not None,
+        'first_name': not None,
+        'middle_name': None,
+        'position': None,
+        'organization': None,
+        'phone': not None,
+    }
 
     # Преобразование объекта Contact в словарь
     def to_dict(self):
@@ -488,9 +565,13 @@ class Contact(db.Model):
 
     # Извлечение доступных not null данных из словаря в объект типа Contact
     def from_dict(self, data):
-        for field in ['last_name', 'first_name', 'middle_name', 'position', 'organization', 'phone']:
-            if field in data and data[field] is not None:
-                setattr(self, field, data[field])
+        for field in self.fields:
+            # Пихаем значение, если оно не None и относиться к нашим полям, либо если оно None и поле может быть таким
+            if field in data:
+                if data[field] is not None:
+                    setattr(self, field, data[field])
+                elif data[field] is None and self.fields[field] is None:
+                    setattr(self, field, data[field])
 
     def __repr__(self):
         return "<Contact № {}>".format(self.contact_id)

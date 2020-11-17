@@ -171,6 +171,8 @@ class Contracts(Resource):
         self.parser.add_argument('payment_type', type=str, required=False,
                                  default='банковский перевод', location='json')
         self.parser.add_argument('application_id', type=int, required=False, location='json')
+        self.parser.add_argument('requisite_id', type=int, required=False, location='json')
+
         super(Contracts, self).__init__()
 
     # Выдать список всех объектов типа Contract
@@ -211,6 +213,8 @@ class ContractSingle(Resource):
         self.parser.add_argument('client_id', type=int, required=False, location='json')
         self.parser.add_argument('payment_type', type=str, required=False, location='json')
         self.parser.add_argument('application_id', type=int, required=False, location='json')
+        self.parser.add_argument('requisite_id', type=int, required=False, location='json')
+
         super(ContractSingle, self).__init__()
 
     # Получить объект Contract
@@ -410,6 +414,26 @@ class ApplicationSingleCargos(Resource):
         return {'data': data}, 200
 
 
+# Все водители у конкретной заявки
+class ApplicationsDrivers(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, application_id):
+        app = Application.query.get_or_404(application_id)
+        drivers = app.drivers
+        data = Driver.to_dict_list(drivers)
+        return {'data': data}, 200
+
+
+# Все водители у конкретной заявки
+class ApplicationsCars(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, application_id):
+        app = Application.query.get_or_404(application_id)
+        cars = app.cars
+        data = Car.to_dict_list(cars)
+        return {'data': data}, 200
+
+
 """ Водители (Driver) """
 
 
@@ -510,6 +534,29 @@ class DriverSingle(Resource):
         return {'data': driver.to_dict()}, 200
 
 
+# Все заявки у конкретного водителя
+class DriversApplications(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, driver_id):
+        driver = Driver.query.get_or_404(driver_id)
+        applications = driver.applications
+        data = Application.to_dict_list(applications)
+        return {'data': data}, 200
+
+
+# Послужной список водителя
+class DriversService(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, driver_id):
+        driver = Driver.query.get_or_404(driver_id)
+        applications = []
+        for application in driver.applications:
+            if application.status is 'finished':
+                applications.append(application)
+        data = Application.to_dict_list(applications)
+        return {'data': data}, 200
+
+
 """ Машины/Грузовики (Cars) """
 
 
@@ -595,6 +642,30 @@ class CarSingle(Resource):
         return {'data': car.to_dict()}, 200
 
 
+# Все заявки у конкретной машины
+class CarsApplications(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, car_id):
+        car = Car.query.get_or_404(car_id)
+        applications = car.applications
+        data = Application.to_dict_list(applications)
+        return {'data': data}, 200
+
+
+# Послужной список (амортизации) машины
+class CarsService(Resource):
+    # noinspection PyMethodMayBeStatic
+    def get(self, car_id):
+        car = Car.query.get_or_404(car_id)
+        applications = []
+        for application in car.applications:
+            if application.status is 'finished':
+                applications.append(application)
+
+        data = Application.to_dict_list(applications)
+        return {'data': data}, 200
+
+
 """ Реквизиты """
 
 
@@ -617,7 +688,6 @@ class Requisites(Resource):
                                  help='KS not provided', location='json')
         self.parser.add_argument('RS', type=str, required=True,
                                  help='RS not provided', location='json')
-        self.parser.add_argument('contract_id', type=int, required=False, location='json')
         super(Requisites, self).__init__()
 
     # Выдать список всех объектов Requisite
@@ -631,13 +701,6 @@ class Requisites(Resource):
     # noinspection PyMethodMayBeStatic
     def post(self):
         data = self.parser.parse_args()
-
-        # Если такого контракта не существует или контракт уже выполнен
-        if data['contract_id'] is not None:
-            if Contract.query.get(data['contract_id']) is None:
-                return {'message': "No such contract"}, 409
-            if Contract.query.get(data['contract_id']).application.status == 'finished':
-                return {'message': "Cannot add a requisite to a finished contract"}, 409
 
         requisite = Requisite()
         requisite.from_dict(data)
@@ -658,7 +721,6 @@ class RequisiteSingle(Resource):
         self.parser.add_argument('KPP', type=str, required=False, location='json')
         self.parser.add_argument('KS', type=str, required=False, location='json')
         self.parser.add_argument('RS', type=str, required=False, location='json')
-        self.parser.add_argument('contract_id', type=int, required=False, location='json')
         super(RequisiteSingle, self).__init__()
 
     # Получить объект Requisite
@@ -672,13 +734,6 @@ class RequisiteSingle(Resource):
     def put(self, requisite_id):
         requisite = Requisite.query.get_or_404(requisite_id)
         data = self.parser.parse_args()
-
-        # Если такого контракта не существует или контракт уже выполнен
-        if data['contract_id'] is not None:
-            if Contract.query.get(data['contract_id']) is None:
-                return {'message': "No such contract"}, 409
-            if Contract.query.get(data['contract_id']).application.status == 'finished':
-                return {'message': "Cannot add a requisite to a finished contract"}, 409
 
         # Если данные ничего не изменяют
         if requisite.to_dict() == data:
@@ -964,7 +1019,6 @@ class CargoSingle(Resource):
     def put(self, cargo_id):
         cargo = Cargo.query.get_or_404(cargo_id)
         data = self.parser.parse_args()
-
         # Здесь проверку на что-либо делать незачем
 
         cargo.from_dict(data)
