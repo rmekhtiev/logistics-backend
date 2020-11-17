@@ -64,7 +64,7 @@ CREATE TABLE public.applications (
     delivery_route integer,
     shipper_id integer,
     receiver_id integer,
-    status character varying(9)
+    status character varying(9) NOT NULL
 );
 
 
@@ -243,7 +243,7 @@ CREATE TABLE public.contacts (
     middle_name character varying(32),
     "position" character varying(32),
     organization character varying(64),
-    phone character varying(11)
+    phone character varying(11) NOT NULL
 );
 
 
@@ -280,8 +280,9 @@ CREATE TABLE public.contracts (
     conclusion_date date NOT NULL,
     cost numeric(10,2) NOT NULL,
     payment_type character varying(32),
-    client_id integer,
-    application_id integer
+    client_id integer NOT NULL,
+    application_id integer,
+    requisite_id integer
 );
 
 
@@ -318,8 +319,8 @@ CREATE TABLE public.drivers (
     first_name character varying(32) NOT NULL,
     last_name character varying(32) NOT NULL,
     middle_name character varying(32),
-    categories character varying[],
-    phone character varying(11)
+    categories character varying[] NOT NULL,
+    phone character varying(11) NOT NULL
 );
 
 
@@ -386,8 +387,7 @@ CREATE TABLE public.requisites (
     "KPP" character varying(9) NOT NULL,
     "KS" character varying(20) NOT NULL,
     "RS" character varying(20) NOT NULL,
-    bank_account character varying(20) NOT NULL,
-    contract_id integer
+    bank_account character varying(20) NOT NULL
 );
 
 
@@ -421,8 +421,8 @@ ALTER SEQUENCE public.requisites_requisite_id_seq OWNED BY public.requisites.req
 
 CREATE TABLE public.routes (
     route_id integer NOT NULL,
-    delivery_address character varying(128) NOT NULL,
-    shipping_address character varying(128) NOT NULL,
+    delivery_address character varying(128),
+    shipping_address character varying(128),
     distance double precision,
     estimated_time integer
 );
@@ -520,7 +520,7 @@ ALTER TABLE ONLY public.routes ALTER COLUMN route_id SET DEFAULT nextval('public
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-46ddf3e7f85a
+f35fb1c72c7c
 \.
 
 
@@ -530,10 +530,10 @@ COPY public.alembic_version (version_num) FROM stdin;
 
 COPY public.applications (application_id, name, conclusion_date, delivery_route, shipper_id, receiver_id, status) FROM stdin;
 5	Доставка огромной коллекции разноцветных членов на присосках со встроенным вибратором	2020-10-23	3	2	2	active
-2	Телевизор	2020-12-12	5	5	5	finished
 3	Дилдо (100 штук)	2020-11-30	2	4	4	active
 4	Joint запрос	2020-11-25	1	3	3	active
 1	Доставка чего-то	2020-11-20	6	1	1	active
+2	Телевизор	2020-12-12	5	5	5	finished
 \.
 
 
@@ -543,9 +543,9 @@ COPY public.applications (application_id, name, conclusion_date, delivery_route,
 
 COPY public.cargos (cargo_id, nomenclature, weight, application_id) FROM stdin;
 1	Дилдо	156.23	3
-2	Joint	0.15	4
 3	Телевизор	40	2
 4	Холодильник ЗИЛ	60	1
+2	Joint	0.17	4
 \.
 
 
@@ -606,11 +606,11 @@ COPY public.contacts (contact_id, first_name, last_name, middle_name, "position"
 -- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_id, application_id) FROM stdin;
-1	2020-11-04	48685.92	Карта	1	5
-2	2020-11-28	112500.00	Карта	2	4
-3	2020-11-01	85650.00	Нал	3	3
-4	2020-09-18	19999.99	Карта	4	2
+COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_id, application_id, requisite_id) FROM stdin;
+1	2020-11-04	48685.92	Карта	1	5	2
+4	2020-09-18	19999.99	Карта	4	2	5
+2	2020-11-28	112500.00	Карта	2	4	3
+3	2020-11-01	85650.00	Нал	3	3	4
 \.
 
 
@@ -644,11 +644,11 @@ COPY public.drivers_applications (driver_id, application_id, drivers_application
 -- Data for Name: requisites; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS", bank_account, contract_id) FROM stdin;
-2	ПАО СБЕРБАНК	044525225	7707083893	773601001	30101810400000000225	1485	76965594261126261716	1
-3	ОАО ВТБ	740551822	7707015127	773850152	30108559100000000857	6558	75572169756+96436874	2
-4	ООО ДжетМани	152850124	7707096124	773956124	30107592500000000982	6472	68418621653546874198	3
-5	ООО АльфаБанк	850168842	7707085015	773755519	30107125400000000428	1537	35896843557869168685	4
+COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS", bank_account) FROM stdin;
+2	ПАО СБЕРБАНК	044525225	7707083893	773601001	30101810400000000225	1485	76965594261126261716
+3	ОАО ВТБ	740551822	7707015127	773850152	30108559100000000857	6558	75572169756+96436874
+4	ООО ДжетМани	152850124	7707096124	773956124	30107592500000000982	6472	68418621653546874198
+5	ООО АльфаБанк	850168842	7707085015	773755519	30107125400000000428	1537	35896843557869168685
 \.
 
 
@@ -904,6 +904,14 @@ ALTER TABLE ONLY public.contracts
 
 
 --
+-- Name: contracts contracts_requisite_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.contracts
+    ADD CONSTRAINT contracts_requisite_id_fkey FOREIGN KEY (requisite_id) REFERENCES public.requisites(requisite_id);
+
+
+--
 -- Name: drivers_applications drivers_applications_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -917,14 +925,6 @@ ALTER TABLE ONLY public.drivers_applications
 
 ALTER TABLE ONLY public.drivers_applications
     ADD CONSTRAINT drivers_applications_driver_id_fkey FOREIGN KEY (driver_id) REFERENCES public.drivers(driver_id);
-
-
---
--- Name: requisites requisites_contract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.requisites
-    ADD CONSTRAINT requisites_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES public.contracts(contract_id);
 
 
 --
