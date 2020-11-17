@@ -2,11 +2,6 @@ from flask import request
 from flask_restful import Resource, reqparse
 from app.models import *
 
-""" Хуй пойми что, Семён пидарас """
-
-
-# TODO: Добавить телефон водителю Driver
-
 
 class HelloWorld(Resource):
     # noinspection PyMethodMayBeStatic

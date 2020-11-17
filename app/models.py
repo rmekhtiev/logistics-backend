@@ -103,7 +103,7 @@ class Application(db.Model):
             'attributes':
                 {
                     'name': self.name,
-                    'conclusion date': str(self.conclusion_date),
+                    'conclusion_date': str(self.conclusion_date),
                     'status': self.status,
                     'delivery_route': self.delivery_route,
                     'shipper_id': self.shipper_id,
@@ -121,7 +121,7 @@ class Application(db.Model):
                 'attributes':
                     {
                         'name': data.name,
-                        'conclusion date': str(data.conclusion_date),
+                        'conclusion_date': str(data.conclusion_date),
                         'status': data.status,
                         'delivery_route': data.delivery_route,
                         'shipper_id': data.shipper_id,
