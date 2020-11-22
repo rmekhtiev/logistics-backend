@@ -186,7 +186,8 @@ class Route(db.Model):
                     'delivery_address': self.delivery_address,
                     'shipping_address': self.shipping_address,
                     'distance': self.distance,
-                    'estimated_time': self.estimated_time
+                    'estimated_time': self.estimated_time,
+                    'name': self.shipping_address + ' - ' + self.delivery_address
                 }
         }
         return data
@@ -202,7 +203,8 @@ class Route(db.Model):
                         'delivery_address': data.delivery_address,
                         'shipping_address': data.shipping_address,
                         'distance': data.distance,
-                        'estimated_time': data.estimated_time
+                        'estimated_time': data.estimated_time,
+                        'name': data.shipping_address + ' - ' + data.delivery_address
                     }
             }
             for data in list_data]
@@ -321,7 +323,8 @@ class Requisite(db.Model):
                     'INN': self.INN,
                     'KS': self.KS,
                     'RS': self.RS,
-                    'bank_account': self.bank_account
+                    'bank_account': self.bank_account,
+                    'name': self.bank_account + ', ' + self.INN
                 }
         }
         return data
@@ -339,7 +342,8 @@ class Requisite(db.Model):
                         'INN': data.INN,
                         'KS': data.KS,
                         'RS': data.RS,
-                        'bank_account': data.bank_account
+                        'bank_account': data.bank_account,
+                        'name': data.bank_account + ', ' + data.INN
                     }
             }
             for data in list_data]
