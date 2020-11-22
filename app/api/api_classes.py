@@ -489,7 +489,7 @@ class ApplicationsCars(Resource):
         app = Application.query.get_or_404(application_id)
         car = Car.query.get_or_404(data['car_id'])
 
-        app.drivers.append(car)
+        app.cars.append(car)
         db.session.commit()
 
         response = {
