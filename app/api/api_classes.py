@@ -220,7 +220,7 @@ class ContractSingle(Resource):
     # Получить объект Contract
     # noinspection PyMethodMayBeStatic
     def get(self, contract_id):
-        contract = Contract.query.get_or_404(contract_id).to_dict()
+        contract = Contract.query.get_or_404(contract_id)
         return {'data': contract.to_dict()}, 200
 
     # Внести изменения в объект Contract
@@ -326,10 +326,6 @@ class Applications(Resource):
             if Application.query.filter_by(receiver_id=data['receiver_id']).first():
                 return {'message': "This contact is already in use"}, 409
 
-        # Если такой маршрут уже используется какой-то заявкой
-        if Application.query.filter_by(delivery_route=data['delivery_route']).first():
-            return {'message': "Please use a different delivery_route (already in use)"}
-
         application = Application()
         application.from_dict(data)
         db.session.add(application)
@@ -365,9 +361,6 @@ class ApplicationSingle(Resource):
 
         # Если хотят изменить у Application поле delivery_route (маршрут)
         if data['delivery_route'] is not None:
-            # Если такой маршрут уже используется
-            if Application.query.filter_by(delivery_route=data['delivery_route']).first():
-                return {'message': "This delivery route is already in use. Please use a different route"}
             # Если такого маршрута нет
             if not Route.query.get(data['delivery_route']):
                 return {'message': "This delivery route doesn't exist. Please use a different route"}
@@ -416,6 +409,13 @@ class ApplicationSingleCargos(Resource):
 
 # Все водители у конкретной заявки
 class ApplicationsDrivers(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('driver_id', type=int, required=False, location='json')
+
+        super(ApplicationsDrivers, self).__init__()
+
+    # Выдать список всех объектов Driver
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         app = Application.query.get_or_404(application_id)
@@ -423,15 +423,96 @@ class ApplicationsDrivers(Resource):
         data = Driver.to_dict_list(drivers)
         return {'data': data}, 200
 
+    # прикрепить к данной Application объект Driver
+    # noinspection PyMethodMayBeStatic
+    def post(self, application_id):
+        data = self.parser.parse_args()
+        app = Application.query.get_or_404(application_id)
+        driver = Driver.query.get_or_404(data['driver_id'])
 
-# Все водители у конкретной заявки
+        """ 
+                    Или можно вот так добавить:
+                    db.session.execute(drivers_applications.insert(),
+                           params={"application_id": app.application_id, "driver_id": driver.driver_id})
+        """
+
+        app.drivers.append(driver)
+        db.session.commit()
+
+        response = {
+            'application_id': app.application_id,
+            'driver_id': driver.driver_id
+        }
+
+        return {'data': response}, 200
+
+    # открепить от данной Application объект Driver
+    # noinspection PyMethodMayBeStatic
+    def delete(self, application_id):
+        data = self.parser.parse_args()
+        app = Application.query.get_or_404(application_id)
+        driver = Driver.query.get_or_404(data['driver_id'])
+
+        app.drivers.remove(driver)
+        db.session.commit()
+
+        response = {
+            'application_id': app.application_id,
+            'driver_id': driver.driver_id
+        }
+
+        return {'data': response}, 200
+
+
+# Все машины у конкретной заявки
 class ApplicationsCars(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('car_id', type=int, required=False, location='json')
+
+        super(ApplicationsCars, self).__init__()
+
+    # Выдать список всех объектов Car
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         app = Application.query.get_or_404(application_id)
         cars = app.cars
         data = Car.to_dict_list(cars)
         return {'data': data}, 200
+
+    # прикрепить к данной Application объект Car
+    # noinspection PyMethodMayBeStatic
+    def post(self, application_id):
+        data = self.parser.parse_args()
+        app = Application.query.get_or_404(application_id)
+        car = Car.query.get_or_404(data['car_id'])
+
+        app.drivers.append(car)
+        db.session.commit()
+
+        response = {
+            'application_id': app.application_id,
+            'car_id': car.car_id
+        }
+
+        return {'data': response}, 200
+
+    # открепить от данной Application объект Car
+    # noinspection PyMethodMayBeStatic
+    def delete(self, application_id):
+        data = self.parser.parse_args()
+        app = Application.query.get_or_404(application_id)
+        car = Car.query.get_or_404(data['car_id'])
+
+        app.drivers.remove(car)
+        db.session.commit()
+
+        response = {
+            'application_id': app.application_id,
+            'car_id': car.car_id
+        }
+
+        return {'data': response}, 200
 
 
 """ Водители (Driver) """
