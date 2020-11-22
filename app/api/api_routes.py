@@ -62,3 +62,9 @@ api.add_resource(ContactApp, '/api/v1.0/contacts/<contact_id>/app')
 api.add_resource(Cargos, '/api/v1.0/cargos')
 api.add_resource(CargoSingle, '/api/v1.0/cargos/<cargo_id>')
 api.add_resource(CargoApp, '/api/v1.0/cargos/<cargo_id>/app')
+
+
+""" Routes """
+
+api.add_resource(Routes, '/api/v1.0/routes')
+api.add_resource(RouteSingle, '/api/v1.0/routes/<route_id>')
