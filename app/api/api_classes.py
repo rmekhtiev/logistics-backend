@@ -101,7 +101,9 @@ class ClientSingle(Resource):
         data = self.parser.parse_args()
 
         # Если клиент с такими паспортными данными уже существует
-        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
+        if Client.query\
+                .filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first()\
+                .client_id != client_id: # noqa
             return {'message': "Client with that passport data already exists"}, 409
 
         # Проверка на правильность телефонного номера
