@@ -1,10 +1,13 @@
 from app.auth.views.bluprint_classes import *
+from flask import Blueprint
 
 # define the API resources
 registration_view = RegisterAPI.as_view('register_api')
 login_view = LoginAPI.as_view('login_api')
 user_view = UserAPI.as_view('user_api')
 logout_view = LogoutAPI.as_view('logout_api')
+
+auth_blueprint = Blueprint('auth_blueprint', __name__)
 
 # add Rules for API Endpoints
 auth_blueprint.add_url_rule(

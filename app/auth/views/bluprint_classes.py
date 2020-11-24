@@ -1,11 +1,9 @@
-from flask import Blueprint, request, make_response, jsonify
+from flask import request, make_response, jsonify
 from flask.views import MethodView
 
 from app import db
 from app.auth import bcrypt
 from app.auth.models import User, BlacklistToken
-
-auth_blueprint = Blueprint('auth', __name__)
 
 
 class RegisterAPI(MethodView):
@@ -13,6 +11,7 @@ class RegisterAPI(MethodView):
     User Registration Resource
     """
 
+    # noinspection PyMethodMayBeStatic
     def post(self):
         # get the post data
         post_data = request.get_json()
@@ -32,10 +31,11 @@ class RegisterAPI(MethodView):
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully registered.',
+                    'email': user.email,
                     'auth_token': auth_token.decode()
                 }
                 return make_response(jsonify(responseObject)), 201
-            except Exception as e:
+            except Exception:
                 responseObject = {
                     'status': 'fail',
                     'message': 'Some error occurred. Please try again.'
@@ -53,6 +53,8 @@ class LoginAPI(MethodView):
     """
     User Login Resource
     """
+
+    # noinspection PyMethodMayBeStatic
     def post(self):
         # get the post data
         post_data = request.get_json()
@@ -91,6 +93,8 @@ class UserAPI(MethodView):
     """
     User Resource
     """
+
+    # noinspection PyMethodMayBeStatic
     def get(self):
         # get the auth token
         auth_header = request.headers.get('Authorization')
@@ -136,6 +140,8 @@ class LogoutAPI(MethodView):
     """
     Logout Resource
     """
+
+    # noinspection PyMethodMayBeStatic
     def post(self):
         # get auth token
         auth_header = request.headers.get('Authorization')

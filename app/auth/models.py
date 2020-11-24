@@ -12,8 +12,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    registered_on = db.Column(db.DateTime, nullable=False)
-    admin = db.Column(db.Boolean, nullable=False, default=False)
+    registered_on = db.Column(db.DateTime, nullable=True)
+    admin = db.Column(db.Boolean, nullable=True, default=False)
 
     def __init__(self, email, password, admin=False):
         self.email = email
@@ -75,11 +75,11 @@ class BlacklistToken(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     token = db.Column(db.String(500), unique=True, nullable=False)
-    blacklisted_on = db.Column(db.DateTime, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, nullable=True)
 
     def __init__(self, token):
         self.token = token
-        self.blacklisted_on = datetime.datetime.now()
+        self.blacklisted_on = datetime.now()
 
     def __repr__(self):
         return '<id: token: {}'.format(self.token)
