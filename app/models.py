@@ -255,7 +255,7 @@ class Contract(db.Model):
             'attributes':
                 {
                     'conclusion_date': str(self.conclusion_date),
-                    'cost': str(self.cost),
+                    'cost': float(self.cost),
                     'payment_type': self.payment_type,
                     'application_id': self.application_id,
                     'client_id': self.client_id,
@@ -273,7 +273,7 @@ class Contract(db.Model):
                 'attributes':
                     {
                         'conclusion_date': str(data.conclusion_date),
-                        'cost': str(data.cost),
+                        'cost': float(data.cost),
                         'payment_type': data.payment_type,
                         'application_id': data.application_id,
                         'client_id': data.client_id,
@@ -399,7 +399,7 @@ class Client(db.Model):
                     'middle_name': self.middle_name or None,
                     'email': self.email or None,
                     'phone': self.phone,
-                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name or ''])
                 }
         }
         return data
@@ -419,7 +419,7 @@ class Client(db.Model):
                         'middle_name': data.middle_name or None,
                         'email': data.email or None,
                         'phone': data.phone,
-                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name or ''])
                     }
             }
             for data in list_data]
@@ -467,7 +467,7 @@ class Driver(db.Model):
                     'first_name': self.first_name,
                     'middle_name': self.middle_name or None,
                     'categories': self.categories or None,
-                    'name': ' '.join([self.last_name, self.first_name, self.middle_name]),
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name or '']),
                     'phone': self.phone or None
                 }
         }
@@ -485,7 +485,7 @@ class Driver(db.Model):
                         'first_name': data.first_name,
                         'middle_name': data.middle_name or None,
                         'categories': data.categories or None,
-                        'name': ' '.join([data.last_name, data.first_name, data.middle_name]),
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name or '']),
                         'phone': data.phone or None
                     }
             }
@@ -544,7 +544,7 @@ class Contact(db.Model):
                     'position': self.position or None,
                     'organization': self.organization or None,
                     'phone': self.phone,
-                    'name': ' '.join([self.last_name, self.first_name, self.middle_name])
+                    'name': ' '.join([self.last_name, self.first_name, self.middle_name or ''])
                 }
         }
         return data
@@ -563,7 +563,7 @@ class Contact(db.Model):
                         'position': data.position or None,
                         'organization': data.organization or None,
                         'phone': data.phone,
-                        'name': ' '.join([data.last_name, data.first_name, data.middle_name])
+                        'name': ' '.join([data.last_name, data.first_name, data.middle_name or ''])
                     }
             }
             for data in list_data]

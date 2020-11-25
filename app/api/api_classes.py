@@ -1,6 +1,7 @@
 from flask import request
 from flask_restful import Resource, reqparse
 from app.models import *
+from app.api.extensions import compare
 
 
 class HelloWorld(Resource):
@@ -65,6 +66,10 @@ class Clients(Resource):
         if Client.query.filter_by(phone=data['phone']).first():
             return {'message': "Client with this phone already exists"}, 409
 
+        # Если клиент с таким e-mail уже есть
+        if Client.query.filter_by(email=data['email']).first():
+            return {'message': "Client with this e-mail address already exists"}, 409
+
         client = Client()
         client.from_dict(data)
         db.session.add(client)
@@ -100,31 +105,51 @@ class ClientSingle(Resource):
         client = Client.query.get_or_404(client_id)
         data = self.parser.parse_args()
 
-        # Если клиент с такими паспортными данными уже существует
-        if Client.query\
-                .filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first()\
-                .client_id != client_id: # noqa
-            return {'message': "Client with that passport data already exists"}, 409
+        # Проверяем какие поля хотят изменить запросом
+        result = compare(client.to_dict()['attributes'], data)
 
-        # Проверка на правильность телефонного номера
-        if len(data['phone']) > 11 or data['phone'][0] != '7':
-            return {'message': "incorrect phone format"}, 409
+        for argument in result.keys():
+            if not result[argument]:
+                # Если изменяют телефон
+                if argument == 'phone':
 
-        # Если клиент с таким телефоном уже есть
-        if Client.query.filter_by(phone=data['phone']).first():
-            return {'message': "Client with this phone already exists"}, 409
+                    # Проверка на правильность телефонного номера
+                    if len(data[argument]) > 11 or data[argument][0] not in ['7', '8']:
+                        return {'message': "incorrect phone format"}, 409
 
-        # Если клиент с таким e-mail уже есть
-        if Client.query.filter_by(passport_number=data['email']).first():
-            return {'message': "Client with this e-mail address already exists"}, 409
+                    # Если клиент с таким телефоном уже есть
+                    if Client.query.filter_by(phone=data[argument]).first():
+                        return {'message': "Client with this phone already exists"}, 409
 
-        # Если пытаются поменять клиенту номер паспорта, а такая комбинация уже есть у другого клиента
-        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=client.passport_series).first(): # noqa
-            return {'message': "Client cannot have passport data that already exists (passport number bad)"}, 409
+                # Если изменяют e-mail
+                elif argument == 'email':
 
-        # Если пытаются поменять клиенту серию паспорта, а такая комбинация уже есть у другого клиента
-        if Client.query.filter_by(passport_number=client.passport_number, passport_series=data['passport_series']).first(): # noqa
-            return {'message': "Client cannot have passport data that already exists (passport series bad)"}, 409
+                    # Если клиент с таким e-mail уже есть
+                    if Client.query.filter_by(email=data['email']).first():
+                        return {'message': "Client with this e-mail address already exists"}, 409
+
+                # Если изменяют номер паспорта
+                elif argument == 'passport_number':
+
+                    # Если пытаются поменять клиенту номер паспорта, а такая комбинация уже есть у другого клиента
+                    if Client.query.filter_by(passport_number=data['passport_number'],
+                                              passport_series=client.passport_series).first():
+                        return {'message': "Client cannot have passport data that already exists (passport number bad)"}, 409 # noqa
+
+                # Если изменяют серию паспорта
+                elif argument == 'passport_series':
+
+                    # Если пытаются поменять клиенту серию паспорта, а такая комбинация уже есть у другого клиента
+                    if Client.query.filter_by(passport_number=client.passport_number,
+                                              passport_series=data['passport_series']).first():
+                        return {'message': "Client cannot have passport data that already exists (passport series bad)"}, 409 # noqa
+
+                # Если изменяют что-то из ФИО
+                elif argument in ['first_name', 'last_name', 'middle_name']:
+                    if Client.query.filter_by(first_name=data[argument],
+                                              last_name=data[argument],
+                                              middle_name=data[argument]).first():
+                        return {'message': "Client with this full name already exists"}, 409
 
         client.from_dict(data)
         db.session.commit()
@@ -195,8 +220,11 @@ class Contracts(Resource):
                 return {'message': "this application is already in use"}
 
         # На клиента проверку не делаем, так как он может иметь сколь угодно много контрактов
+        # На реквезиты проверку не делаем, так как они могут повторяться
 
-        # TODO: сделать проверку на корректность payment_type (в процессе понять какие возможные значения принимаются)
+        # Проверка на тип оплаты
+        if data['payment_type'] is not None and data['payment_type'] not in ['transfer', 'card', 'cash']:
+            return {'message': "This payment type does not exist"}
 
         contract = Contract()
         contract.from_dict(data)
@@ -233,7 +261,7 @@ class ContractSingle(Resource):
 
         # Если хотят изменить у Contract поле conclusion_date (дата создания)
         if data['conclusion_date'] is not None:
-            return {'message': "contracts conclusion date cannot be changed, it's done automatically"}, 409
+            return {'message': "Contracts conclusion date cannot be changed, it's done automatically"}, 409
 
         # Если данные ничего не изменяют
         if contract.to_dict() == data:
@@ -245,6 +273,10 @@ class ContractSingle(Resource):
         if data['application_id'] is not None:
             if Application.query.get_or_404(data['application_id']).contract:
                 return {'message': "This application is already in use"}, 409
+
+        # Проверка на тип оплаты
+        if data['payment_type'] is not None and data['payment_type'] not in ['transfer', 'card', 'cash']:
+            return {'message': "This payment type method doesn't exist"}
 
         contract.from_dict(data)
         db.session.commit()
@@ -506,7 +538,7 @@ class ApplicationsCars(Resource):
         app = Application.query.get_or_404(application_id)
         car = Car.query.get_or_404(data['car_id'])
 
-        app.drivers.remove(car)
+        app.cars.remove(car)
         db.session.commit()
 
         response = {
@@ -556,11 +588,11 @@ class Drivers(Resource):
             return {'message': "This driver already exist. May need to delete..."}, 409
 
         # Проверка телефона
-        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']):
-            return {'message': "Incorrect phone format"}, 409
-
-        if Driver.query.filter_by(phone=data['phone']).first():
-            return {'message': "Driver with this phone already exists"}, 409
+        if data['phone']:
+            if len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']:
+                return {'message': "Incorrect phone format"}, 409
+            if Driver.query.filter_by(phone=data['phone']).first():
+                return {'message': "Driver with this phone already exists"}, 409
 
         driver = Driver()
         driver.from_dict(data)
@@ -579,6 +611,7 @@ class DriverSingle(Resource):
         self.parser.add_argument('first_name', type=str, required=False, location='json')
         self.parser.add_argument('middle_name', type=str, required=False, location='json')
         self.parser.add_argument('categories', type=list, required=False, location='json')
+        self.parser.add_argument('phone', type=str, required=False, location='json')
         super(DriverSingle, self).__init__()
 
     # Получить объект Driver
@@ -593,9 +626,21 @@ class DriverSingle(Resource):
         driver = Driver.query.get_or_404(driver_id)
         data = self.parser.parse_args()
 
-        # Если данные ничего не изменяют
-        if driver.to_dict() == data:
-            return {'message': "You have changed nothing"}, 409
+        result = compare(driver.to_dict()['attributes'], data)
+        for argument in result.keys():
+            if not result[argument]:
+                if argument == 'phone':
+                    # Проверка на правильность телефонного номера
+                    if len(data[argument]) > 11 or not data[argument][0] in ['7', '8']:
+                        return {'message': "Incorrect phone format"}, 409
+                    # Если контакт с таким телефоном уже есть
+                    if Driver.query.filter_by(phone=data[argument]).first():
+                        return {'message': "Driver with this phone already exists"}, 409
+
+                # Если изменяют что-то из ФИО
+                elif argument in ['first_name', 'last_name', 'middle_name']:
+                    if Driver.query.filter_by(first_name=data[argument], last_name=data[argument], middle_name=data[argument]).first(): # noqa
+                        return {'message': "Driver with this full name already exists"}, 409
 
         driver.from_dict(data)
         db.session.commit()
@@ -909,14 +954,21 @@ class ContactSingle(Resource):
         contact = Contact.query.get_or_404(contact_id)
         data = self.parser.parse_args()
 
-        # Проверка на правильность телефонного номера
-        if data['phone'] and (len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']):
-            return {'message': "incorrect phone format"}, 409
+        result = compare(contact.to_dict()['attributes'], data)
+        for argument in result.keys():
+            if not result[argument]:
+                if argument == 'phone':
+                    # Проверка на правильность телефонного номера
+                    if len(data[argument]) > 11 or not data[argument][0] in ['7', '8']:
+                        return {'message': "Incorrect phone format"}, 409
+                    # Если контакт с таким телефоном уже есть
+                    if Contact.query.filter_by(phone=data[argument]).first():
+                        return {'message': "Contact with this phone already exists"}, 409
 
-        # Если контакт с таким телефоном уже есть
-        _tempContact = Contact.query.filter_by(phone=data['phone']).first()
-        if contact.contact_id != _tempContact.contact_id:
-            return {'message': "Contact with this phone already exists"}, 409
+                # Если изменяют что-то из ФИО
+                elif argument in ['first_name', 'last_name', 'middle_name']:
+                    if Client.query.filter_by(first_name=data[argument], last_name=data[argument], middle_name=data[argument]).first(): # noqa
+                        return {'message': "Client with this full name already exists"}, 409
 
         contact.from_dict(data)
         db.session.commit()
@@ -1102,6 +1154,7 @@ class CargoSingle(Resource):
     def put(self, cargo_id):
         cargo = Cargo.query.get_or_404(cargo_id)
         data = self.parser.parse_args()
+
         # Здесь проверку на что-либо делать незачем
 
         cargo.from_dict(data)
