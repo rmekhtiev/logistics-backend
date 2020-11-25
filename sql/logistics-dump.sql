@@ -93,6 +93,41 @@ ALTER SEQUENCE public.applications_application_id_seq OWNED BY public.applicatio
 
 
 --
+-- Name: blacklist_tokens; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.blacklist_tokens (
+    id integer NOT NULL,
+    token character varying(500) NOT NULL,
+    blacklisted_on timestamp without time zone
+);
+
+
+ALTER TABLE public.blacklist_tokens OWNER TO postgres;
+
+--
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.blacklist_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.blacklist_tokens_id_seq OWNER TO postgres;
+
+--
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.blacklist_tokens_id_seq OWNED BY public.blacklist_tokens.id;
+
+
+--
 -- Name: cargos; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -453,10 +488,54 @@ ALTER SEQUENCE public.routes_route_id_seq OWNED BY public.routes.route_id;
 
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    email character varying(255) NOT NULL,
+    password character varying(255) NOT NULL,
+    registered_on timestamp without time zone,
+    admin boolean
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
 -- Name: applications application_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.applications ALTER COLUMN application_id SET DEFAULT nextval('public.applications_application_id_seq'::regclass);
+
+
+--
+-- Name: blacklist_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.blacklist_tokens ALTER COLUMN id SET DEFAULT nextval('public.blacklist_tokens_id_seq'::regclass);
 
 
 --
@@ -516,11 +595,18 @@ ALTER TABLE ONLY public.routes ALTER COLUMN route_id SET DEFAULT nextval('public
 
 
 --
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
 -- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-f35fb1c72c7c
+cf5f6f2aa36d
 \.
 
 
@@ -534,6 +620,15 @@ COPY public.applications (application_id, name, conclusion_date, delivery_route,
 4	Joint запрос	2020-11-25	1	3	3	active
 1	Доставка чего-то	2020-11-20	6	1	1	active
 2	Телевизор	2020-12-12	5	5	5	finished
+7	sdfads	2020-11-25	\N	2	2	finished
+\.
+
+
+--
+-- Data for Name: blacklist_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.blacklist_tokens (id, token, blacklisted_on) FROM stdin;
 \.
 
 
@@ -581,9 +676,9 @@ COPY public.cars_applications (car_id, application_id, cars_applications_id) FRO
 
 COPY public.clients (client_id, passport_number, passport_series, first_name, last_name, middle_name, email, phone) FROM stdin;
 2	5819	499601	Евстрахий	Полено	Петрович	EfstrahTheLog@mail.ru	79162185692
-4	7613	899417	Бибиб	Бердымухамедов	Мяликгулыевич	dark_knight@vostok.com	79253859851
 1	4526	588761	Афонт	Семендяев	Константинович	afont@gmail.com	79854751892
 3	4478	512485	Аббоссали	Мовсисян	Мунарбекович	abbossali1976@mail.ru	79856832385
+4	7613	899417	Бибиб	Бердымухамедоф	Мяликгулыевич	dark_knight@vostok.com	79253859851
 \.
 
 
@@ -611,6 +706,7 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 4	2020-09-18	19999.99	Карта	4	2	5
 2	2020-11-28	112500.00	Карта	2	4	3
 3	2020-11-01	85650.00	Нал	3	3	4
+7	2020-11-25	485.92	Карта	1	7	2
 \.
 
 
@@ -620,10 +716,11 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 
 COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, phone) FROM stdin;
 8	Пётр	Водило	Азбекович	{'A','B','D'}	79164152615
-2	Атманда	Пивницкий	Мурзоевич	{'B','D','E','F'}	79857482464
 9	Хайитбой	Зокиржон угли	Хамзанович	{'A','B','D','E','F'}	79259569153
 10	Абдумажит	Вахобович	Мухмагомедович	{'B','D','E'}	79168684849
 11	Срапион	Мовсисян	Ваники	{'B','D'}	89858591451
+12	awrq	qwrqw	qweqweq	{'B','E'}	74129581499
+2	Атманда	Пивницкий	Мурзоевич	{'B','D','E','F'}	79997482464
 \.
 
 
@@ -637,6 +734,7 @@ COPY public.drivers_applications (driver_id, application_id, drivers_application
 9	3	4
 10	4	5
 11	1	6
+12	2	9
 \.
 
 
@@ -667,17 +765,34 @@ COPY public.routes (route_id, delivery_address, shipping_address, distance, esti
 
 
 --
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, email, password, registered_on, admin) FROM stdin;
+1	johnn_d@mail.ru	$2b$04$Fxbt9/WEJsPXRxfNYjpxv.sBKFD1gPEE/ItTWsJkmecxl2VXGx66O	2020-11-24 23:20:25.187925	f
+2	the_log@mail.ru	$2b$04$XjKDnJl1guEnw7bnVlpBc.UPqN6KmJ5f8vrM7gi08gDyJisClGAoK	2020-11-24 23:49:07.166632	f
+\.
+
+
+--
 -- Name: applications_application_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.applications_application_id_seq', 5, true);
+SELECT pg_catalog.setval('public.applications_application_id_seq', 7, true);
+
+
+--
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.blacklist_tokens_id_seq', 1, false);
 
 
 --
 -- Name: cargos_cargo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.cargos_cargo_id_seq', 1, false);
+SELECT pg_catalog.setval('public.cargos_cargo_id_seq', 6, true);
 
 
 --
@@ -712,21 +827,21 @@ SELECT pg_catalog.setval('public.contacts_contact_id_seq', 7, true);
 -- Name: contracts_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.contracts_contract_id_seq', 4, true);
+SELECT pg_catalog.setval('public.contracts_contract_id_seq', 7, true);
 
 
 --
 -- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 6, true);
+SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 9, true);
 
 
 --
 -- Name: drivers_driver_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_driver_id_seq', 11, true);
+SELECT pg_catalog.setval('public.drivers_driver_id_seq', 12, true);
 
 
 --
@@ -744,6 +859,13 @@ SELECT pg_catalog.setval('public.routes_route_id_seq', 6, true);
 
 
 --
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 2, true);
+
+
+--
 -- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -757,6 +879,22 @@ ALTER TABLE ONLY public.alembic_version
 
 ALTER TABLE ONLY public.applications
     ADD CONSTRAINT applications_pkey PRIMARY KEY (application_id);
+
+
+--
+-- Name: blacklist_tokens blacklist_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.blacklist_tokens
+    ADD CONSTRAINT blacklist_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blacklist_tokens blacklist_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.blacklist_tokens
+    ADD CONSTRAINT blacklist_tokens_token_key UNIQUE (token);
 
 
 --
@@ -837,6 +975,22 @@ ALTER TABLE ONLY public.requisites
 
 ALTER TABLE ONLY public.routes
     ADD CONSTRAINT routes_pkey PRIMARY KEY (route_id);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
 --
