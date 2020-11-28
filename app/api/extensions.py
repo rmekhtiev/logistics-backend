@@ -15,5 +15,12 @@ def compare(dict_first, dict_second):
     return result
 
 
-class Check:
-    pass
+def wrap(dict):
+    newDict = {}
+    keys = dict.getkeys()
+    newDict['id'] = dict['id']
+    attributes = {}
+    for key in keys:
+        if key != 'id':
+            attributes[key] = dict[key]
+    newDict['attributes'] = attributes
