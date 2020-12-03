@@ -15,12 +15,25 @@ def compare(dict_first, dict_second):
     return result
 
 
-def wrap(dict):
+def wrap(dictionary):
+    """
+            wraps the income dictionary with 'id' key and 'attributes' key, where 'id' is the dictionaries 'id'
+            and the 'attributes' are the other values from the income dictionary
+            :param dictionary: second dict to compare
+            :return: dictionary with new keys 'id' and 'attributes'
+    """
     newDict = {}
-    keys = dict.getkeys()
-    newDict['id'] = dict['id']
-    attributes = {}
+    keys = dictionary.getkeys()
+
+    if 'id' not in keys:
+        return dictionary
+    else:
+        keys.remove('id')
+    # todo добавить кэтч для ключа id
+
+    newDict['id'] = dictionary['id']
+    newDict['attributes'] = {}
+
     for key in keys:
-        if key != 'id':
-            attributes[key] = dict[key]
-    newDict['attributes'] = attributes
+        newDict['attributes'][key] = dictionary[key]
+    return newDict
