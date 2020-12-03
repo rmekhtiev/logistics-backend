@@ -55,20 +55,31 @@ class Clients(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Если клиент с такими паспортными данными уже существует
-        if Client.query.filter_by(passport_number=data['passport_number'], passport_series=data['passport_series']).first(): # noqa
-            return {'message': "Client with that passport data already exists"}, 409
-
-        # Проверка на правильность телефонного номера
-        if len(data['phone']) > 11 or data['phone'][0] != '7':
-            return {'message': "Incorrect phone format"}, 409
-        # Если клиент с таким телефоном уже есть
-        if Client.query.filter_by(phone=data['phone']).first():
-            return {'message': "Client with this phone already exists"}, 409
-
-        # Если клиент с таким e-mail уже есть
-        if Client.query.filter_by(email=data['email']).first():
-            return {'message': "Client with this e-mail address already exists"}, 409
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute in ['passport_number', 'passport_series']:
+                    if Client.query.filter_by(passport_number=data['passport_number'],
+                                              passport_series=data['passport_series']).first():
+                        return {'message': "Client with that passport data already exists"}, 409
+                if attribute in ['last_name', 'first_name', 'middle_name']:
+                    if Client.query.filter_by(last_name=data['last_name'],
+                                              first_name=data['first_name'],
+                                              middle_name=data['middle_name']).first():
+                        return {'message': "Client with this full name already exists"}, 409
+                if attribute == 'phone':
+                    # Проверка на правильность телефонного номера
+                    if len(data['phone']) > 11 or data['phone'][0] != '7':
+                        return {'message': "Incorrect phone format"}, 409
+                    # Если клиент с таким телефоном уже есть
+                    if Client.query.filter_by(phone=data['phone']).first():
+                        return {'message': "Client with this phone already exists"}, 409
+                if attribute == 'email':
+                    # Если клиент с таким e-mail уже есть
+                    if Client.query.filter_by(email=data['email']).first():
+                        return {'message': "Client with this e-mail address already exists"}, 409
+            else:
+                if attribute in ['passport_number', 'passport_series', 'last_name', 'first_name', 'phone']:
+                    return {'message': "Field '{}' cannot be null".format(attribute)}
 
         client = Client()
         client.from_dict(data)
@@ -108,47 +119,48 @@ class ClientSingle(Resource):
         # Проверяем какие поля хотят изменить запросом
         result = compare(client.to_dict()['attributes'], data)
 
-        for argument in result.keys():
-            if not result[argument]:
+        for attribute in result.keys():
+            if not result[attribute] and data[attribute] is not None:
                 # Если изменяют телефон
-                if argument == 'phone':
+                if attribute == 'phone':
 
                     # Проверка на правильность телефонного номера
-                    if len(data[argument]) > 11 or data[argument][0] not in ['7', '8']:
+                    if len(data[attribute]) > 11 or data[attribute][0] not in ['7', '8']:
                         return {'message': "incorrect phone format"}, 409
 
                     # Если клиент с таким телефоном уже есть
-                    if Client.query.filter_by(phone=data[argument]).first():
+                    if Client.query.filter_by(phone=data[attribute]).first():
                         return {'message': "Client with this phone already exists"}, 409
 
                 # Если изменяют e-mail
-                elif argument == 'email':
+                elif attribute == 'email':
 
                     # Если клиент с таким e-mail уже есть
                     if Client.query.filter_by(email=data['email']).first():
                         return {'message': "Client with this e-mail address already exists"}, 409
 
                 # Если изменяют номер паспорта
-                elif argument == 'passport_number':
+                elif attribute == 'passport_number':
 
                     # Если пытаются поменять клиенту номер паспорта, а такая комбинация уже есть у другого клиента
                     if Client.query.filter_by(passport_number=data['passport_number'],
                                               passport_series=client.passport_series).first():
-                        return {'message': "Client cannot have passport data that already exists (passport number bad)"}, 409 # noqa
+                        return {'message': "Client cannot have passport data that already exists (passport number bad)"}, 409  # noqa
 
                 # Если изменяют серию паспорта
-                elif argument == 'passport_series':
+                elif attribute == 'passport_series':
 
                     # Если пытаются поменять клиенту серию паспорта, а такая комбинация уже есть у другого клиента
                     if Client.query.filter_by(passport_number=client.passport_number,
                                               passport_series=data['passport_series']).first():
-                        return {'message': "Client cannot have passport data that already exists (passport series bad)"}, 409 # noqa
+                        return {
+                                   'message': "Client cannot have passport data that already exists (passport series bad)"}, 409  # noqa
 
                 # Если изменяют что-то из ФИО
-                elif argument in ['first_name', 'last_name', 'middle_name']:
-                    if Client.query.filter_by(first_name=data[argument],
-                                              last_name=data[argument],
-                                              middle_name=data[argument]).first():
+                elif attribute in ['first_name', 'last_name', 'middle_name']:
+                    if Client.query.filter_by(first_name=data[attribute],
+                                              last_name=data[attribute],
+                                              middle_name=data[attribute]).first():
                         return {'message': "Client with this full name already exists"}, 409
 
         client.from_dict(data)
@@ -194,9 +206,9 @@ class Contracts(Resource):
                                  default=datetime.utcnow, location='json')
         self.parser.add_argument('cost', type=float, required=True,
                                  help='cost of the payment not provided', location='json')
-        self.parser.add_argument('client_id', type=int, required=False, location='json')
+        self.parser.add_argument('client_id', type=int, required=True, location='json')
         self.parser.add_argument('payment_type', type=str, required=False,
-                                 default='банковский перевод', location='json')
+                                 default='Card', location='json')
         self.parser.add_argument('application_id', type=int, required=False, location='json')
         self.parser.add_argument('requisite_id', type=int, required=False, location='json')
 
@@ -214,17 +226,35 @@ class Contracts(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Если контракту присваивают application, который уже используется
-        if data['application_id'] is not None:
-            if Application.query.get_or_404(data['application_id']).contract:
-                return {'message': "this application is already in use"}
-
-        # На клиента проверку не делаем, так как он может иметь сколь угодно много контрактов
-        # На реквезиты проверку не делаем, так как они могут повторяться
-
-        # Проверка на тип оплаты
-        if data['payment_type'] is not None and data['payment_type'] not in ['transfer', 'card', 'cash']:
-            return {'message': "This payment type does not exist"}
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute == 'conclusion_date':
+                    if data[attribute] > datetime.utcnow():
+                        return {'message': "Provided datetime is bigger than existing {date}".format(date=datetime.utcnow())} # noqa
+                if attribute == 'cost':
+                    if data[attribute] < 0.0:
+                        return {'message': "Cost cannot be lower than zero"}, 409
+                if attribute == 'client_id':
+                    if not Client.query.get(data[attribute]):
+                        return {'message': "This client doesn't exist"}, 409
+                if attribute == 'payment_type':
+                    if data[attribute].lower() not in ['card', 'cash', 'transfer']:
+                        return {'message': "Payment type incorrect"}, 409
+                if attribute == 'application_id':
+                    if not Application.query.get(data[attribute]):
+                        return {'message': "Application not found"}, 409
+                    else:
+                        app = Application.query.get(data[attribute])
+                        if app.status == 'finished':
+                            return {'message': "The application given is finished"}, 409
+                        if app.contract is not None:
+                            return {'message': "The application given is already in use"}, 409
+                if attribute == 'requisite_id':
+                    if not Requisite.query.get(data[attribute]):
+                        return {'message': "Requisite not found"}, 409
+            else:
+                if attribute in ['cost', 'client_id']:
+                    return {'message': "Field '{}' cannot be null".format(attribute)}
 
         contract = Contract()
         contract.from_dict(data)
@@ -259,24 +289,45 @@ class ContractSingle(Resource):
         contract = Contract.query.get_or_404(contract_id)
         data = self.parser.parse_args()
 
-        # Если хотят изменить у Contract поле conclusion_date (дата создания)
-        if data['conclusion_date'] is not None:
-            return {'message': "Contracts conclusion date cannot be changed, it's done automatically"}, 409
+        result = compare(contract.to_dict()['attributes'], data)
+        for attribute in result.keys():
+            if not result[attribute]:
+                # Если меняют что-то, а заявка уже выполнена
+                if contract.application is not None and contract.application.status == 'finished':
+                    return {'message': "Cannot change anything, detached application is already finished"}, 409
 
-        # Если данные ничего не изменяют
-        if contract.to_dict() == data:
-            return {"message": "You have changed nothing"}, 409
-
-        # Проверку на изменнение клиента не делаем
-
-        # Если контракту присваивают application, который уже используется
-        if data['application_id'] is not None:
-            if Application.query.get_or_404(data['application_id']).contract:
-                return {'message': "This application is already in use"}, 409
-
-        # Проверка на тип оплаты
-        if data['payment_type'] is not None and data['payment_type'] not in ['transfer', 'card', 'cash']:
-            return {'message': "This payment type method doesn't exist"}
+                if data[attribute] is not None:
+                    # Если хотят изменить у Contract поле conclusion_date (дата создания)
+                    if attribute == 'conclusion_date':
+                        return {'message': "Contracts conclusion date cannot be changed, it's done automatically"}, 409
+                    # Если меняют стоимость
+                    if attribute == 'cost':
+                        if data[attribute] < 0.0:
+                            return {'message': "Cost cannot be lower than zero"}, 409
+                    # Если меняют клиента
+                    if attribute == 'client_id':
+                        if not Client.query.get(data[attribute]):
+                            return {'message': "This client doesn't exist"}, 409
+                    # Если меняют тип оплаты
+                    if attribute == 'payment_type':
+                        if data[attribute].lower() not in ['card', 'cash', 'transfer']:
+                            return {'message': "Payment type incorrect"}, 409
+                    # Если меняют заявку
+                    if attribute == 'application_id':
+                        app = Application.query.get(data[attribute])
+                        # Если переданная заявка не существует
+                        if app is None:
+                            return {'message': "Application not found"},
+                        # Если переданная заявка уже завершена
+                        if app.status == 'finished':
+                            return {'message': "The application given is finished"},
+                        # Если переданная заявка имеет у себя свой контракт
+                        if app.contract is not None:
+                            return {'message': "The application given has an active contract, please remove it first"}, 409 # noqa
+                    # Если меняют реквизиты
+                    if attribute == 'requisite_id':
+                        if not Requisite.query.get(data[attribute]):
+                            return {'message': "Requisite not found"}, 409
 
         contract.from_dict(data)
         db.session.commit()
@@ -352,13 +403,26 @@ class Applications(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Если контактные лица уже привязаны к каким-то заявкам
-        if data['shipper_id'] is not None:
-            if Application.query.filter_by(shipper_id=data['shipper_id']).first():
-                return {'message': "This contact is already in use"}, 409
-        if data['receiver_id'] is not None:
-            if Application.query.filter_by(receiver_id=data['receiver_id']).first():
-                return {'message': "This contact is already in use"}, 409
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute == 'name':
+                    if Application.query.filter_by(name=data[attribute]).first():
+                        return {'message': "An application with this name already exist, choose another name"}
+                if attribute == 'conclusion_date':
+                    if data[attribute] > datetime.utcnow():
+                        return {'message': "Provided datetime is bigger than existing {date}".format(date=datetime.utcnow())} # noqa
+                if attribute == 'delivery_route':
+                    if not Route.query.get(data[attribute]):
+                        return {'message': "This route doesn't exist: {route}".format(route=data[attribute])}
+                if attribute == 'shipper_id' or attribute == 'receiver_id':
+                    if not Contact.query.get(data[attribute]):
+                        return {'message': "This contact doesn't exist: {contact}".format(contact=data[attribute])}
+                if attribute == 'status':
+                    if data[attribute] == 'finished':
+                        return {'message': "Cannot create a finished application"}
+            else:
+                if attribute in ['name']:
+                    return {'message': "Field '{name}' cannot be empty".format(name=attribute)}
 
         application = Application()
         application.from_dict(data)
@@ -393,25 +457,34 @@ class ApplicationSingle(Resource):
         application = Application.query.get_or_404(application_id)
         data = self.parser.parse_args()
 
-        # Если хотят изменить у Application поле delivery_route (маршрут)
-        if data['delivery_route'] is not None:
-            # Если такого маршрута нет
-            if not Route.query.get(data['delivery_route']):
-                return {'message': "This delivery route doesn't exist. Please use a different route"}
+        result = compare(application.to_dict()['attributes'], data)
 
-        # Если контактные лица уже привязаны к каким-то заявкам
-        if data['shipper_id'] is not None:
-            if Application.query.filter_by(shipper_id=data['shipper_id']).first():
-                return {'message': "This contact is already in use"}, 409
-            # Если такого контакта нет
-            if Contact.query.get(data['shipper_id']):
-                return {'message': "This contact doesn't exist"}, 409
-        if data['receiver_id'] is not None:
-            if Application.query.filter_by(receiver_id=data['receiver_id']).first():
-                return {'message': "This contact is already in use"}, 409
-            # Если такого контакта нет
-            if Contact.query.get(data['shipper_id']):
-                return {'message': "This contact doesn't exist"}, 409
+        for attribute in result.keys():
+            if not result[attribute]:
+                # Если меняют что-то, а заявка уже выполнена
+                if application.status == 'finished':
+                    return {'message': "Cannot change anything, application is already finished"}, 409
+                # Если поле не null
+                if data[attribute] is not None:
+                    # Если меняют статус
+                    if attribute == 'status':
+                        if application.status == 'finished':
+                            return {'message': "This application is finished. Cannot change anything"}, 409
+                    # Если меняют имя
+                    if attribute == 'name':
+                        if Application.query.filter_by(name=data[attribute]).first():
+                            return {'message': "Application with this name already exists"}, 409
+                    # Если хотят изменить delivery_route (маршрут)
+                    if attribute == 'delivery_route':
+                        if not Route.query.get(data[attribute]):
+                            return {'message': "This delivery route doesn't exist. Please use a different route"}, 409
+                    # Если меняют контактных лиц
+                    if attribute == 'shipper_id' or attribute == 'receiver_id':
+                        if not Contact.query.get(data[attribute]):
+                            return {'message': "This contact doesn't exist. Please use a different one"}, 409
+                    # Если меняют дату составления
+                    if attribute == 'conclusion_date':
+                        return {'message': "Cannot change conclusion date, it is set automatically"}, 409
 
         application.from_dict(data)
         db.session.add(application)
@@ -442,13 +515,7 @@ class ApplicationSingleCargos(Resource):
 
 
 # Все водители у конкретной заявки
-class ApplicationsDrivers(Resource):
-    def __init__(self):
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('driver_id', type=int, required=False, location='json')
-
-        super(ApplicationsDrivers, self).__init__()
-
+class ApplicationSingleDrivers(Resource):
     # Выдать список всех объектов Driver
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
@@ -457,12 +524,24 @@ class ApplicationsDrivers(Resource):
         data = Driver.to_dict_list(drivers)
         return {'data': data}, 200
 
+
+# Все машины у конкретной заявки
+class ApplicationSingleCars(Resource):
+    # Выдать список всех объектов Car у данного Application
+    # noinspection PyMethodMayBeStatic
+    def get(self, application_id):
+        app = Application.query.get_or_404(application_id)
+        cars = app.cars
+        data = Car.to_dict_list(cars)
+        return {'data': data}, 200
+
+
+class ApplicationSingleDriverSingle(Resource):
     # прикрепить к данной Application объект Driver
     # noinspection PyMethodMayBeStatic
-    def post(self, application_id):
-        data = self.parser.parse_args()
+    def post(self, application_id, driver_id):
         app = Application.query.get_or_404(application_id)
-        driver = Driver.query.get_or_404(data['driver_id'])
+        driver = Driver.query.get_or_404(driver_id)
 
         """ 
                     Или можно вот так добавить:
@@ -482,10 +561,9 @@ class ApplicationsDrivers(Resource):
 
     # открепить от данной Application объект Driver
     # noinspection PyMethodMayBeStatic
-    def delete(self, application_id):
-        data = self.parser.parse_args()
+    def delete(self, application_id, driver_id):
         app = Application.query.get_or_404(application_id)
-        driver = Driver.query.get_or_404(data['driver_id'])
+        driver = Driver.query.get_or_404(driver_id)
 
         app.drivers.remove(driver)
         db.session.commit()
@@ -498,28 +576,12 @@ class ApplicationsDrivers(Resource):
         return {'data': response}, 200
 
 
-# Все машины у конкретной заявки
-class ApplicationsCars(Resource):
-    def __init__(self):
-        self.parser = reqparse.RequestParser()
-        self.parser.add_argument('car_id', type=int, required=False, location='json')
-
-        super(ApplicationsCars, self).__init__()
-
-    # Выдать список всех объектов Car
-    # noinspection PyMethodMayBeStatic
-    def get(self, application_id):
-        app = Application.query.get_or_404(application_id)
-        cars = app.cars
-        data = Car.to_dict_list(cars)
-        return {'data': data}, 200
-
+class ApplicationSingleCarSingle(Resource):
     # прикрепить к данной Application объект Car
     # noinspection PyMethodMayBeStatic
-    def post(self, application_id):
-        data = self.parser.parse_args()
+    def post(self, application_id, car_id):
         app = Application.query.get_or_404(application_id)
-        car = Car.query.get_or_404(data['car_id'])
+        car = Car.query.get_or_404(car_id)
 
         app.cars.append(car)
         db.session.commit()
@@ -533,10 +595,9 @@ class ApplicationsCars(Resource):
 
     # открепить от данной Application объект Car
     # noinspection PyMethodMayBeStatic
-    def delete(self, application_id):
-        data = self.parser.parse_args()
+    def delete(self, application_id, car_id):
         app = Application.query.get_or_404(application_id)
-        car = Car.query.get_or_404(data['car_id'])
+        car = Car.query.get_or_404(car_id)
 
         app.cars.remove(car)
         db.session.commit()
@@ -554,7 +615,6 @@ class ApplicationsCars(Resource):
 
 # Все водители
 class Drivers(Resource):
-
     # Настройка запроса request и его полей
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -582,17 +642,25 @@ class Drivers(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Если водитель с таким ФИО уже есть
-        if Driver.query.filter_by(last_name=data['last_name'], first_name=data['first_name'],
-                                  middle_name=data['middle_name']).first():
-            return {'message': "This driver already exist. May need to delete..."}, 409
-
-        # Проверка телефона
-        if data['phone']:
-            if len(data['phone']) > 11 or not data['phone'][0] in ['7', '8']:
-                return {'message': "Incorrect phone format"}, 409
-            if Driver.query.filter_by(phone=data['phone']).first():
-                return {'message': "Driver with this phone already exists"}, 409
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute in ['last_name', 'first_name', 'middle_name']:
+                    if len(data[attribute]) > 32:
+                        return {'message': "{} length cannot be bigger than 32".format(attribute)}, 409
+                    if Driver.query.filter_by(last_name=data['last_name'],
+                                              first_name=data['first_name'],
+                                              middle_name=data['middle_name']).first():
+                        return {'message': "Driver with this full name already exists"}, 409
+                if attribute == 'phone':
+                    # Проверка на правильность телефонного номера
+                    if len(data['phone']) > 11 or not data['phone'][0] == '7':
+                        return {'message': "Incorrect phone format"}, 409
+                    # Если водитель с таким номером телефона уже есть
+                    if Driver.query.filter_by(phone=data['phone']).first():
+                        return {'message': "Driver with this phone already exists"}, 409
+            else:
+                if attribute in ['last_name', 'first_name', 'phone']:
+                    return {'message': "Field {} cannot be null".format(attribute)}, 409
 
         driver = Driver()
         driver.from_dict(data)
@@ -627,19 +695,21 @@ class DriverSingle(Resource):
         data = self.parser.parse_args()
 
         result = compare(driver.to_dict()['attributes'], data)
-        for argument in result.keys():
-            if not result[argument]:
-                if argument == 'phone':
+
+        for attribute in result.keys():
+            if not result[attribute] and data[attribute] is not None:
+                # Если изменяют номер телефона
+                if attribute == 'phone':
                     # Проверка на правильность телефонного номера
-                    if len(data[argument]) > 11 or not data[argument][0] in ['7', '8']:
+                    if len(data[attribute]) > 11 or not data[attribute][0] in ['7', '8']:
                         return {'message': "Incorrect phone format"}, 409
                     # Если контакт с таким телефоном уже есть
-                    if Driver.query.filter_by(phone=data[argument]).first():
+                    if Driver.query.filter_by(phone=data[attribute]).first():
                         return {'message': "Driver with this phone already exists"}, 409
-
                 # Если изменяют что-то из ФИО
-                elif argument in ['first_name', 'last_name', 'middle_name']:
-                    if Driver.query.filter_by(first_name=data[argument], last_name=data[argument], middle_name=data[argument]).first(): # noqa
+                elif attribute in ['first_name', 'last_name', 'middle_name']:
+                    if Driver.query.filter_by(first_name=data[attribute], last_name=data[attribute],
+                                              middle_name=data[attribute]).first():  # noqa
                         return {'message': "Driver with this full name already exists"}, 409
 
         driver.from_dict(data)
@@ -679,7 +749,7 @@ class DriversService(Resource):
         driver = Driver.query.get_or_404(driver_id)
         applications = []
         for application in driver.applications:
-            if application.status is 'finished':
+            if application.status == 'finished':
                 applications.append(application)
         data = Application.to_dict_list(applications)
         return {'data': data}, 200
@@ -716,6 +786,7 @@ class Cars(Resource):
         data = self.parser.parse_args()
 
         # Здесь никаких проверок вроде как нет, так как одинаковых машин может быть несколько
+        # todo сделать проверку на null поля
         car = Car()
         car.from_dict(data)
         db.session.add(car)
@@ -745,11 +816,6 @@ class CarSingle(Resource):
     def put(self, car_id):
         car = Car.query.get_or_404(car_id)
         data = self.parser.parse_args()
-
-        # Если данные ничего не изменяют
-        if car.to_dict() == data:
-            return {'message': "You have changed nothing"}, 409
-
         car.from_dict(data)
         db.session.commit()
         return {'data': car.to_dict()}, 200
@@ -787,7 +853,7 @@ class CarsService(Resource):
         car = Car.query.get_or_404(car_id)
         applications = []
         for application in car.applications:
-            if application.status is 'finished':
+            if application.status == 'finished':
                 applications.append(application)
 
         data = Application.to_dict_list(applications)
@@ -863,9 +929,10 @@ class RequisiteSingle(Resource):
         requisite = Requisite.query.get_or_404(requisite_id)
         data = self.parser.parse_args()
 
-        # Если данные ничего не изменяют
-        if requisite.to_dict() == data:
-            return {'message': "You have changed nothing"}, 409
+        # Проверка на то, что заказ уже выполнен (вместо изменения лучше добавлять новый реквизит)
+        for contract in requisite.contracts:
+            if contract.requisite == requisite and contract.application.status == 'finished':
+                return {'message': "Cannot change anything, when the any application is finished (create new requisite, not change"}, 409 # noqa
 
         requisite.from_dict(data)
         db.session.commit()
@@ -912,13 +979,24 @@ class Contacts(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Проверка на правильность телефонного номера
-        if len(data['phone']) > 11 or not data['phone'][0] == '7':
-            return {'message': "Incorrect phone format"}, 409
-
-        # Если контакт с таким телефоном уже есть
-        if Contact.query.filter_by(phone=data['phone']).first():
-            return {'message': "Contact with this phone already exists"}, 409
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute in ['last_name', 'first_name', 'middle_name', 'position']:
+                    if len(data[attribute]) > 32:
+                        return {'message': "{} length cannot be bigger than 32".format(attribute)}, 409
+                if attribute == 'phone':
+                    # Проверка на правильность телефонного номера
+                    if len(data['phone']) > 11 or not data['phone'][0] == '7':
+                        return {'message': "Incorrect phone format"}, 409
+                    # Если контакт с таким телефоном уже есть
+                    if Contact.query.filter_by(phone=data['phone']).first():
+                        return {'message': "Contact with this phone already exists"}, 409
+                if attribute == 'organization':
+                    if len(data[attribute]) > 64:
+                        return {'message': "Organization length cannot be bigger than 64"}, 409
+            else:
+                if attribute in ['last_name', 'first_name', 'phone']:
+                    return {'message': "Field {} cannot be null".format(attribute)}, 409
 
         contact = Contact()
         contact.from_dict(data)
@@ -955,8 +1033,9 @@ class ContactSingle(Resource):
         data = self.parser.parse_args()
 
         result = compare(contact.to_dict()['attributes'], data)
+
         for argument in result.keys():
-            if not result[argument]:
+            if not result[argument] and data[argument] is not None:
                 if argument == 'phone':
                     # Проверка на правильность телефонного номера
                     if len(data[argument]) > 11 or not data[argument][0] in ['7', '8']:
@@ -964,10 +1043,10 @@ class ContactSingle(Resource):
                     # Если контакт с таким телефоном уже есть
                     if Contact.query.filter_by(phone=data[argument]).first():
                         return {'message': "Contact with this phone already exists"}, 409
-
                 # Если изменяют что-то из ФИО
                 elif argument in ['first_name', 'last_name', 'middle_name']:
-                    if Client.query.filter_by(first_name=data[argument], last_name=data[argument], middle_name=data[argument]).first(): # noqa
+                    if Client.query.filter_by(first_name=data[argument], last_name=data[argument],
+                                              middle_name=data[argument]).first():  # noqa
                         return {'message': "Client with this full name already exists"}, 409
 
         contact.from_dict(data)
@@ -1065,7 +1144,16 @@ class RouteSingle(Resource):
         route = Route.query.get_or_404(route_id)
         data = self.parser.parse_args()
 
-        # Здесь проверку на что-либо делать незачем
+        result = compare(route.to_dict()['attributes'], data)
+
+        # Проверка на завершённость заявки при изменении любого поля маршрута
+        for argument in result.keys():
+            if not result[argument]:
+                application = Application.query.filter_by(delivery_route=route_id).first()
+                if application and application.status == 'finished':
+                    return {'message': "Cannot modify a route, that has a finished application"}, 409
+                else:
+                    break
 
         route.from_dict(data)
         db.session.commit()
@@ -1122,7 +1210,20 @@ class Cargos(Resource):
     def post(self):
         data = self.parser.parse_args()
 
-        # Здесь проверку на что-либо делать незачем
+        for attribute in data.keys():
+            if data[attribute] is not None:
+                if attribute == 'nomenclature':
+                    if len(data[attribute]) > 64:
+                        return {'message': "Name length cannot be bigger than 64"}, 409
+                if attribute == 'weight':
+                    if data[attribute] < 0.0:
+                        return {'message': "Weight cannot be lower than zero"}, 409
+                if attribute == 'application_id':
+                    if not Application.query.get(data[attribute]):
+                        return {'message': "Application doesn't exist"}, 409
+            else:
+                if attribute in ['nomenclature', 'weight']:
+                    return {'message': "Field {} cannot be null".format(attribute)}, 409
 
         cargo = Cargo()
         cargo.from_dict(data)
@@ -1156,6 +1257,16 @@ class CargoSingle(Resource):
         data = self.parser.parse_args()
 
         # Здесь проверку на что-либо делать незачем
+
+        result = compare(cargo.to_dict()['attributes'], data)
+
+        for argument in result.keys():
+            if not result[argument]:
+                # Проверка на прикрпеление груза к завершённой заявке
+                if argument == 'application_id':
+                    application = Application.query.get_or_404(data[argument])
+                    if application.status == 'finished':
+                        return {'message': "Cannot assign a cargo to a finished application"}, 409
 
         cargo.from_dict(data)
         db.session.commit()

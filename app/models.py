@@ -1,6 +1,8 @@
 from app import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import backref
+
 
 """ Смежная таблица многие-ко-многим (applications - cars) """
 cars_applications = db.Table('cars_applications',
@@ -226,7 +228,7 @@ class Contract(db.Model):
 
     contract_id = db.Column(db.Integer, primary_key=True)
     conclusion_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)
-    cost = db.Column(db.Numeric(10, 2), nullable=False)
+    cost = db.Column(db.Numeric(10, 2), default=0.0, nullable=False)
     payment_type = db.Column(db.String(32), default='Банковский перевод', nullable=True)
 
     """ Реквизит """
@@ -234,16 +236,16 @@ class Contract(db.Model):
 
     """ Заявка """
     application_id = db.Column(db.Integer, db.ForeignKey('applications.application_id'), nullable=True)
-    application = db.relationship('Application', backref='contract', uselist=False)
+    application = db.relationship('Application', backref=backref('contract', uselist=False), uselist=False)
 
     """ Клиент """
     client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'), nullable=False)
 
     fields = {
-        'conclusion_date': None,
-        'cost': None,
-        'payment_type': not None,
-        'application_id': not None,
+        'conclusion_date': not None,
+        'cost': not None,
+        'payment_type': None,
+        'application_id': None,
         'client_id': not None,
         'requisite_id': None
     }
@@ -518,9 +520,9 @@ class Contact(db.Model):
     phone = db.Column(db.String(11), nullable=False)
 
     """ Ссылки на Application """
-    application_ship = db.relationship('Application', backref='shipper', uselist=False,
+    application_ship = db.relationship('Application', backref='shipper', uselist=True,
                                        foreign_keys='Application.shipper_id')
-    application_receive = db.relationship('Application', backref='receiver', uselist=False,
+    application_receive = db.relationship('Application', backref='receiver', uselist=True,
                                           foreign_keys='Application.receiver_id')
 
     fields = {
