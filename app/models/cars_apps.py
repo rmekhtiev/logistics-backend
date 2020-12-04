@@ -1,4 +1,4 @@
-from app import db
+from app.models import db
 
 
 """ Смежная таблица многие-ко-многим (applications - cars) """

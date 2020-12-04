@@ -1,4 +1,4 @@
-from app import db
+from app.models import db
 from datetime import datetime
 from app.models.cars_apps import cars_applications
 from app.models.drivers_apps import drivers_applications

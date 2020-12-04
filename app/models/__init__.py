@@ -1,3 +1,4 @@
+from app import db
 from app.models.Client import Client
 from app.models.Application import Application
 from app.models.Contract import Contract

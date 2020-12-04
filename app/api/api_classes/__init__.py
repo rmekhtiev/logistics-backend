@@ -2,6 +2,8 @@
 from app.models import *
 # noinspection PyUnresolvedReferences
 from flask_restful import Resource, reqparse
+# noinspection PyUnresolvedReferences
+from datetime import datetime
 
 from app.api.api_classes.Clients import *
 from app.api.api_classes.Contracts import *
