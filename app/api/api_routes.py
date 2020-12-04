@@ -1,9 +1,5 @@
-from app.api.api_classes import *
-
 from app.api import api
-
-
-api.add_resource(HelloWorld, '/api/v2.0/hello')
+from app.api.api_classes import *
 
 
 """ Applications """
