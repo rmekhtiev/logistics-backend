@@ -1,0 +1,7 @@
+from app.api.api_classes.Applications.Applications import Applications
+from app.api.api_classes.Applications.ApplicationSingle import ApplicationSingle
+from app.api.api_classes.Applications.ApplicationSingleCargos import ApplicationSingleCargos
+from app.api.api_classes.Applications.ApplicationSingleCars import ApplicationSingleCars
+from app.api.api_classes.Applications.ApplicationSingleCarsSingle import ApplicationSingleCarSingle
+from app.api.api_classes.Applications.ApplicationSingleDrivers import ApplicationSingleDrivers
+from app.api.api_classes.Applications.ApplicationSingleDriversSingle import ApplicationSingleDriverSingle
