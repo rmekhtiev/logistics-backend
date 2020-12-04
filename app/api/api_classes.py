@@ -206,7 +206,7 @@ class Contracts(Resource):
                                  default=datetime.utcnow, location='json')
         self.parser.add_argument('cost', type=float, required=True,
                                  help='cost of the payment not provided', location='json')
-        self.parser.add_argument('client_id', type=int, required=True, location='json')
+        self.parser.add_argument('client_id', type=int, required=False, location='json')
         self.parser.add_argument('payment_type', type=str, required=False,
                                  default='Card', location='json')
         self.parser.add_argument('application_id', type=int, required=False, location='json')
@@ -253,7 +253,7 @@ class Contracts(Resource):
                     if not Requisite.query.get(data[attribute]):
                         return {'message': "Requisite not found"}, 409
             else:
-                if attribute in ['cost', 'client_id']:
+                if attribute in ['cost']:
                     return {'message': "Field '{}' cannot be null".format(attribute)}
 
         contract = Contract()
@@ -520,7 +520,7 @@ class ApplicationSingleDrivers(Resource):
     # noinspection PyMethodMayBeStatic
     def get(self, application_id):
         app = Application.query.get_or_404(application_id)
-        drivers = app.drivers
+        drivers = app.drivers.all()
         data = Driver.to_dict_list(drivers)
         return {'data': data}, 200
 

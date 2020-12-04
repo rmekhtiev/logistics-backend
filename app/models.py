@@ -239,14 +239,14 @@ class Contract(db.Model):
     application = db.relationship('Application', backref=backref('contract', uselist=False), uselist=False)
 
     """ Клиент """
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'), nullable=True)
 
     fields = {
         'conclusion_date': not None,
         'cost': not None,
         'payment_type': None,
         'application_id': None,
-        'client_id': not None,
+        'client_id': None,
         'requisite_id': None
     }
 
