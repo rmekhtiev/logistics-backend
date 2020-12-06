@@ -56,4 +56,4 @@ class Drivers(Resource):
         driver.from_dict(data)
         db.session.add(driver)
         db.session.commit()
-        return {'data': driver.to_dict()}, 201
+        return {'data': driver.to_dict(), 'message': "Водитель успешно создан"}, 201

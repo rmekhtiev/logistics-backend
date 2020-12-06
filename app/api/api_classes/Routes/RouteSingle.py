@@ -41,7 +41,7 @@ class RouteSingle(Resource):
 
         route.from_dict(data)
         db.session.commit()
-        return {'data': route.to_dict()}, 200
+        return {'data': route.to_dict(), 'message': "Маршрут №{} успешно изменён".format(route_id)}, 200
 
     # Удалить объект Route
     # noinspection PyMethodMayBeStatic
@@ -51,4 +51,4 @@ class RouteSingle(Resource):
         db.session.delete(route)
         db.session.commit()
         data = route.to_dict()
-        return {'data': data}, 200
+        return {'data': data, 'message': "Маршрут №{} успешно удалён".format(route_id)}, 200

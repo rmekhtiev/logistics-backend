@@ -36,7 +36,7 @@ class RequisiteSingle(Resource):
 
         requisite.from_dict(data)
         db.session.commit()
-        return {'data': requisite.to_dict()}, 200
+        return {'data': requisite.to_dict(), 'message': "Реквизит №{} успешно изменён".format(requisite_id)}, 200
 
     # Удалить объект Requisite
     # noinspection PyMethodMayBeStatic
@@ -45,4 +45,4 @@ class RequisiteSingle(Resource):
 
         db.session.delete(requisite)
         db.session.commit()
-        return {'data': requisite.to_dict()}, 200
+        return {'data': requisite.to_dict(), 'message': "Реквизит №{} успешно удалён".format(requisite_id)}, 200

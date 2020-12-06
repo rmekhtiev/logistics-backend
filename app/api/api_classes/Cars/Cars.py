@@ -36,4 +36,4 @@ class Cars(Resource):
         car.from_dict(data)
         db.session.add(car)
         db.session.commit()
-        return {'data': car.to_dict()}, 201
+        return {'data': car.to_dict(), 'message': "Машина успешно создана"}, 201

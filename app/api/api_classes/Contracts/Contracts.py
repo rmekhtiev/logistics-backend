@@ -66,4 +66,4 @@ class Contracts(Resource):
         contract.from_dict(data)
         db.session.add(contract)
         db.session.commit()
-        return {'data': contract.to_dict()}, 200
+        return {'data': contract.to_dict(), 'message': "Контракт успешно добавлен"}, 200
