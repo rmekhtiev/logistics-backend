@@ -79,7 +79,7 @@ class ContractSingle(Resource):
     def delete(self, contract_id):
         contract = Contract.query.get_or_404(contract_id)
 
-        if contract.application.status == 'active':
+        if contract.application is not None and contract.application.status == 'active':
             return {'message': "This contract has an active application and cannot be deleted"}, 409
 
         db.session.delete(contract)
