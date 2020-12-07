@@ -25,7 +25,7 @@ class ApplicationSingleDriverSingle(Resource):
             'driver_id': driver.driver_id
         }
 
-        return {'data': response}, 200
+        return {'data': response, 'message': "Водитель №{driver} успешно прикреплён к заявке №{app}".format(driver=driver_id, app=application_id)}, 200 # noqa
 
     # открепить от данной Application объект Driver
     # noinspection PyMethodMayBeStatic
@@ -41,4 +41,4 @@ class ApplicationSingleDriverSingle(Resource):
             'driver_id': driver.driver_id
         }
 
-        return {'data': response}, 200
+        return {'data': response, 'message': "Водитель №{driver} откреплён от заявки №{app}".format(driver=driver_id, app=application_id)}, 200 # noqa

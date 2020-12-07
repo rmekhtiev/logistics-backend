@@ -55,4 +55,4 @@ class Contacts(Resource):
         db.session.add(contact)
         db.session.commit()
         data = contact.to_dict()
-        return {'data': data}, 201
+        return {'data': data, 'message': "Контакт успешно создан"}, 201

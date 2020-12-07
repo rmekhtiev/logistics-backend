@@ -27,7 +27,7 @@ class CarSingle(Resource):
         data = self.parser.parse_args()
         car.from_dict(data)
         db.session.commit()
-        return {'data': car.to_dict()}, 200
+        return {'data': car.to_dict(), 'message': "Машина №{} успешно изменена".format(car_id)}, 200
 
     # Удалить объект Car
     # noinspection PyMethodMayBeStatic
@@ -42,4 +42,4 @@ class CarSingle(Resource):
 
         db.session.delete(car)
         db.session.commit()
-        return {'data': car.to_dict()}, 200
+        return {'data': car.to_dict(), 'message': "Машина №{} успешно удалена".format(car_id)}, 200

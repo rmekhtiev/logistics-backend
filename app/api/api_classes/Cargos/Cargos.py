@@ -47,4 +47,4 @@ class Cargos(Resource):
         db.session.add(cargo)
         db.session.commit()
         data = cargo.to_dict()
-        return {'data': data}, 201
+        return {'data': data, 'message': "Груз успешно создан"}, 201

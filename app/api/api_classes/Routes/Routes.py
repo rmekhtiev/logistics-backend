@@ -35,4 +35,4 @@ class Routes(Resource):
         db.session.add(route)
         db.session.commit()
         data = route.to_dict()
-        return {'data': data}, 201
+        return {'data': data, 'message': "Маршрут успешно создан"}, 201

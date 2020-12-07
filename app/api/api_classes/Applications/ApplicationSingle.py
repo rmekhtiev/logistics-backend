@@ -62,7 +62,7 @@ class ApplicationSingle(Resource):
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return {'data': application.to_dict()}, 201
+        return {'data': application.to_dict(), 'message': "Заявка успешно отредактирована"}, 201
 
     # Удалить объект Application
     # noinspection PyMethodMayBeStatic
@@ -74,4 +74,4 @@ class ApplicationSingle(Resource):
 
         db.session.delete(application)
         db.session.commit()
-        return {'data': application.to_dict()}, 200
+        return {'data': application.to_dict(), 'message': "Заявка успешно удалена"}, 200

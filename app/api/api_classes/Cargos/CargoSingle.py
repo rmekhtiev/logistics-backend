@@ -41,7 +41,7 @@ class CargoSingle(Resource):
 
         cargo.from_dict(data)
         db.session.commit()
-        return {'data': cargo.to_dict()}, 200
+        return {'data': cargo.to_dict(), 'message': "Груз №{} успешно изменён".format(cargo_id)}, 200
 
     # Удалить объект Cargo
     # noinspection PyMethodMayBeStatic
@@ -55,4 +55,4 @@ class CargoSingle(Resource):
         db.session.delete(cargo)
         db.session.commit()
         data = cargo.to_dict()
-        return {'data': data}, 200
+        return {'data': data, 'message': "Груз №{} успешно удалён".format(cargo_id)}, 200
