@@ -58,10 +58,10 @@ class ContractSingle(Resource):
                         app = Application.query.get(data[attribute])
                         # Если переданная заявка не существует
                         if app is None:
-                            return {'message': "Application not found"},
+                            return {'message': "Application not found"}, 409
                         # Если переданная заявка уже завершена
                         if app.status == 'finished':
-                            return {'message': "The application given is finished"},
+                            return {'message': "The application given is finished"}, 409
                         # Если переданная заявка имеет у себя свой контракт
                         if app.contract is not None:
                             return {'message': "The application given has an active contract, please remove it first"}, 409 # noqa
