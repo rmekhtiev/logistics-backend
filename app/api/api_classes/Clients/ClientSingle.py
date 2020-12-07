@@ -90,7 +90,7 @@ class ClientSingle(Resource):
         # Если хотят удалить клиента, у которого есть активные контракты
         client_contracts = client.contracts
         for contract in client_contracts:
-            if contract.application.status == 'active':
+            if contract.application is not None and contract.application.status == 'active':
                 return {'message': "Cannot delete client with an active contract"}, 409
 
         db.session.delete(client)

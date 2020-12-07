@@ -315,7 +315,7 @@ CREATE TABLE public.contracts (
     conclusion_date date NOT NULL,
     cost numeric(10,2) NOT NULL,
     payment_type character varying(32),
-    client_id integer NOT NULL,
+    client_id integer,
     application_id integer,
     requisite_id integer
 );
@@ -620,7 +620,8 @@ COPY public.applications (application_id, name, conclusion_date, delivery_route,
 4	Joint запрос	2020-11-25	1	3	3	active
 1	Доставка чего-то	2020-11-20	6	1	1	active
 2	Телевизор	2020-12-12	5	5	5	finished
-7	sdfads	2020-11-25	\N	2	2	finished
+7	wqeqasd	2020-11-25	3	2	2	active
+8	asdasd	2020-12-03	3	2	2	active
 \.
 
 
@@ -679,6 +680,7 @@ COPY public.clients (client_id, passport_number, passport_series, first_name, la
 1	4526	588761	Афонт	Семендяев	Константинович	afont@gmail.com	79854751892
 3	4478	512485	Аббоссали	Мовсисян	Мунарбекович	abbossali1976@mail.ru	79856832385
 4	7613	899417	Бибиб	Бердымухамедоф	Мяликгулыевич	dark_knight@vostok.com	79253859851
+6	4478	499601	asdfasdf	asdf	wpoierhs	test@mail.ru	79856692385
 \.
 
 
@@ -693,7 +695,7 @@ COPY public.contacts (contact_id, first_name, last_name, middle_name, "position"
 2	Артём\n	Студнев	Викторович\n	Сторож	\N	89165069855
 1	Максим	Бобров\n	Петрович	Лесоруб	\N	89160482409
 7	Олег	Капустин	Семёнович	Разнорабочий	\N	89168088379
-6	Джо-Биб	Маглиб	Младший	Налётчик	\N	89850978019
+6	Джо-Биб	Маглиб	Младший	Налётчик	\N	89810978019
 \.
 
 
@@ -702,11 +704,11 @@ COPY public.contacts (contact_id, first_name, last_name, middle_name, "position"
 --
 
 COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_id, application_id, requisite_id) FROM stdin;
-1	2020-11-04	48685.92	Карта	1	5	2
-4	2020-09-18	19999.99	Карта	4	2	5
-2	2020-11-28	112500.00	Карта	2	4	3
-3	2020-11-01	85650.00	Нал	3	3	4
-7	2020-11-25	485.92	Карта	1	7	2
+1	2020-11-04	48685.92	Card	1	5	2
+3	2020-11-01	85650.00	Cash	3	3	4
+7	2020-11-25	485.92	Card	1	7	2
+4	2020-09-18	19999.99	Card	4	2	5
+2	2020-11-28	19992.99	Cash	4	4	5
 \.
 
 
@@ -715,12 +717,12 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 --
 
 COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, phone) FROM stdin;
-8	Пётр	Водило	Азбекович	{'A','B','D'}	79164152615
-9	Хайитбой	Зокиржон угли	Хамзанович	{'A','B','D','E','F'}	79259569153
 10	Абдумажит	Вахобович	Мухмагомедович	{'B','D','E'}	79168684849
 11	Срапион	Мовсисян	Ваники	{'B','D'}	89858591451
 12	awrq	qwrqw	qweqweq	{'B','E'}	74129581499
 2	Атманда	Пивницкий	Мурзоевич	{'B','D','E','F'}	79997482464
+8	Пётр	Водило	Азбекович	{'A','B','D'}	79164152616
+9	Хайитбой	Зокиржон угли	Хамзанович	{'A','B','D','E','F'}	79259569153
 \.
 
 
@@ -729,12 +731,12 @@ COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, 
 --
 
 COPY public.drivers_applications (driver_id, application_id, drivers_applications_id) FROM stdin;
-2	5	2
 8	2	3
 9	3	4
 10	4	5
 11	1	6
 12	2	9
+2	5	10
 \.
 
 
@@ -778,7 +780,7 @@ COPY public.users (id, email, password, registered_on, admin) FROM stdin;
 -- Name: applications_application_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.applications_application_id_seq', 7, true);
+SELECT pg_catalog.setval('public.applications_application_id_seq', 8, true);
 
 
 --
@@ -799,7 +801,7 @@ SELECT pg_catalog.setval('public.cargos_cargo_id_seq', 6, true);
 -- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.cars_applications_cars_applications_id_seq', 5, true);
+SELECT pg_catalog.setval('public.cars_applications_cars_applications_id_seq', 7, true);
 
 
 --
@@ -813,7 +815,7 @@ SELECT pg_catalog.setval('public.cars_car_id_seq', 6, true);
 -- Name: clients_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.clients_client_id_seq', 4, true);
+SELECT pg_catalog.setval('public.clients_client_id_seq', 6, true);
 
 
 --
@@ -827,21 +829,21 @@ SELECT pg_catalog.setval('public.contacts_contact_id_seq', 7, true);
 -- Name: contracts_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.contracts_contract_id_seq', 7, true);
+SELECT pg_catalog.setval('public.contracts_contract_id_seq', 10, true);
 
 
 --
 -- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 9, true);
+SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 10, true);
 
 
 --
 -- Name: drivers_driver_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.drivers_driver_id_seq', 12, true);
+SELECT pg_catalog.setval('public.drivers_driver_id_seq', 14, true);
 
 
 --
