@@ -49,7 +49,7 @@ class ContactSingle(Resource):
 
         contact.from_dict(data)
         db.session.commit()
-        return {'data': contact.to_dict()}, 200
+        return {'data': contact.to_dict(), 'message': "Контакт №{} успешно изменён".format(contact_id)}, 200
 
     # Удалить объект Contact
     # noinspection PyMethodMayBeStatic
@@ -59,4 +59,4 @@ class ContactSingle(Resource):
         db.session.delete(contact)
         db.session.commit()
         data = contact.to_dict()
-        return {'data': data}, 200
+        return {'data': data, 'message': "Контакт №{} успешно изменён".format(contact_id)}, 200

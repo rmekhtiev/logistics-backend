@@ -65,4 +65,4 @@ class Clients(Resource):
         db.session.add(client)
         db.session.commit()
         data = client.to_dict()
-        return {'data': data}, 201
+        return {'data': data, 'message': "Клиент успешно создан"}, 201

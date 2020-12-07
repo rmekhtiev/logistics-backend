@@ -49,7 +49,7 @@ class DriverSingle(Resource):
 
         driver.from_dict(data)
         db.session.commit()
-        return {'data': driver.to_dict()}, 200
+        return {'data': driver.to_dict(), 'message': "Водитель №{} успешно изменён".format(driver_id)}, 200
 
     # Удалить объект Driver
     # noinspection PyMethodMayBeStatic
@@ -64,4 +64,4 @@ class DriverSingle(Resource):
 
         db.session.delete(driver)
         db.session.commit()
-        return {'data': driver.to_dict()}, 200
+        return {'data': driver.to_dict(), 'message': "Водитель №{} успешно удалён".format(driver_id)}, 200

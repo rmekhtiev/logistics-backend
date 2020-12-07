@@ -40,4 +40,4 @@ class Requisites(Resource):
         requisite.from_dict(data)
         db.session.add(requisite)
         db.session.commit()
-        return {'data': requisite.to_dict()}, 201
+        return {'data': requisite.to_dict(), 'message': "Реквизит успешно создан"}, 201

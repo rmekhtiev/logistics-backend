@@ -19,7 +19,7 @@ class ApplicationSingleCarSingle(Resource):
             'car_id': car.car_id
         }
 
-        return {'data': response}, 200
+        return {'data': response, 'message': "Машина №{car} успешно прикреплена к заявке №{app}".format(car=car_id, app=application_id)}, 200 # noqa
 
     # открепить от данной Application объект Car
     # noinspection PyMethodMayBeStatic
@@ -35,4 +35,4 @@ class ApplicationSingleCarSingle(Resource):
             'car_id': car.car_id
         }
 
-        return {'data': response}, 200
+        return {'data': response, 'message': "Машина №{car} успешно откреплена от заявки №{app}".format(car=car_id, app=application_id)}, 200 # noqa

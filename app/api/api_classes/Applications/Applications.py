@@ -56,4 +56,4 @@ class Applications(Resource):
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return {'data': application.to_dict()}, 200
+        return {'data': application.to_dict(), 'message': "Заявка успешно создана"}, 200

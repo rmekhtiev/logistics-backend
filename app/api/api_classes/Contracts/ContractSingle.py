@@ -72,7 +72,7 @@ class ContractSingle(Resource):
 
         contract.from_dict(data)
         db.session.commit()
-        return {'data': contract.to_dict()}, 200
+        return {'data': contract.to_dict(), 'message': "Контракт №{} успешно изменён".format(contract_id)}, 200
 
     # Удалить объект Contract
     # noinspection PyMethodMayBeStatic
@@ -84,4 +84,4 @@ class ContractSingle(Resource):
 
         db.session.delete(contract)
         db.session.commit()
-        return {'data': contract.to_dict()}, 200
+        return {'data': contract.to_dict(), 'message': "Контракт №{} успешно удалён".format(contract_id)}, 200

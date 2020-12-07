@@ -80,7 +80,7 @@ class ClientSingle(Resource):
 
         client.from_dict(data)
         db.session.commit()
-        return {'data': client.to_dict()}, 200
+        return {'data': client.to_dict(), 'message': "Клиент №{} успешно изменён".format(client_id)}, 200
 
     # Удалить объект Client
     # noinspection PyMethodMayBeStatic
@@ -96,4 +96,4 @@ class ClientSingle(Resource):
         db.session.delete(client)
         db.session.commit()
         data = client.to_dict()
-        return {'data': data}, 200
+        return {'data': data, 'message': "Клиент №{} успешно удалён".format(client_id)}, 200
