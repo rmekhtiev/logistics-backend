@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  api:
+    build: ""
+    command: python run.py run -h 0.0.0.0
+    volumes:
+      - .:/app
+    ports:
+      - 5000:5000
+    env_file:
+      - .env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:12-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=petr_kuril
+      - POSTGRES_PASSWORD=petya
+      - POSTGRES_DB=logistics
+    ports:
+    - 5432:5432
+volumes:
+  postgres_data:

@@ -1,5 +1,5 @@
 --
--- PostgreSQL database dump
+-- petr_kurilQL database dump
 --
 
 -- Dumped from database version 12.4
@@ -17,13 +17,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: logistics; Type: DATABASE; Schema: -; Owner: postgres
+-- Name: logistics; Type: DATABASE; Schema: -; Owner: petr_kuril
 --
 
 CREATE DATABASE logistics WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'Russian_Russia.1251' LC_CTYPE = 'Russian_Russia.1251';
 
 
-ALTER DATABASE logistics OWNER TO postgres;
+ALTER DATABASE logistics OWNER TO petr_kuril;
 
 \connect logistics
 
@@ -43,7 +43,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: alembic_version; Type: TABLE; Schema: public; Owner: postgres
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.alembic_version (
@@ -51,10 +51,10 @@ CREATE TABLE public.alembic_version (
 );
 
 
-ALTER TABLE public.alembic_version OWNER TO postgres;
+ALTER TABLE public.alembic_version OWNER TO petr_kuril;
 
 --
--- Name: applications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: applications; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.applications (
@@ -68,10 +68,10 @@ CREATE TABLE public.applications (
 );
 
 
-ALTER TABLE public.applications OWNER TO postgres;
+ALTER TABLE public.applications OWNER TO petr_kuril;
 
 --
--- Name: applications_application_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: applications_application_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.applications_application_id_seq
@@ -83,17 +83,17 @@ CREATE SEQUENCE public.applications_application_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.applications_application_id_seq OWNER TO postgres;
+ALTER TABLE public.applications_application_id_seq OWNER TO petr_kuril;
 
 --
--- Name: applications_application_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: applications_application_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.applications_application_id_seq OWNED BY public.applications.application_id;
 
 
 --
--- Name: blacklist_tokens; Type: TABLE; Schema: public; Owner: postgres
+-- Name: blacklist_tokens; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.blacklist_tokens (
@@ -103,10 +103,10 @@ CREATE TABLE public.blacklist_tokens (
 );
 
 
-ALTER TABLE public.blacklist_tokens OWNER TO postgres;
+ALTER TABLE public.blacklist_tokens OWNER TO petr_kuril;
 
 --
--- Name: blacklist_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.blacklist_tokens_id_seq
@@ -118,17 +118,17 @@ CREATE SEQUENCE public.blacklist_tokens_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.blacklist_tokens_id_seq OWNER TO postgres;
+ALTER TABLE public.blacklist_tokens_id_seq OWNER TO petr_kuril;
 
 --
--- Name: blacklist_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.blacklist_tokens_id_seq OWNED BY public.blacklist_tokens.id;
 
 
 --
--- Name: cargos; Type: TABLE; Schema: public; Owner: postgres
+-- Name: cargos; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.cargos (
@@ -139,10 +139,10 @@ CREATE TABLE public.cargos (
 );
 
 
-ALTER TABLE public.cargos OWNER TO postgres;
+ALTER TABLE public.cargos OWNER TO petr_kuril;
 
 --
--- Name: cargos_cargo_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: cargos_cargo_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.cargos_cargo_id_seq
@@ -154,17 +154,17 @@ CREATE SEQUENCE public.cargos_cargo_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.cargos_cargo_id_seq OWNER TO postgres;
+ALTER TABLE public.cargos_cargo_id_seq OWNER TO petr_kuril;
 
 --
--- Name: cargos_cargo_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: cargos_cargo_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.cargos_cargo_id_seq OWNED BY public.cargos.cargo_id;
 
 
 --
--- Name: cars; Type: TABLE; Schema: public; Owner: postgres
+-- Name: cars; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.cars (
@@ -176,10 +176,10 @@ CREATE TABLE public.cars (
 );
 
 
-ALTER TABLE public.cars OWNER TO postgres;
+ALTER TABLE public.cars OWNER TO petr_kuril;
 
 --
--- Name: cars_applications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: cars_applications; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.cars_applications (
@@ -189,10 +189,10 @@ CREATE TABLE public.cars_applications (
 );
 
 
-ALTER TABLE public.cars_applications OWNER TO postgres;
+ALTER TABLE public.cars_applications OWNER TO petr_kuril;
 
 --
--- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE public.cars_applications ALTER COLUMN cars_applications_id ADD GENERATED ALWAYS AS IDENTITY (
@@ -206,7 +206,7 @@ ALTER TABLE public.cars_applications ALTER COLUMN cars_applications_id ADD GENER
 
 
 --
--- Name: cars_car_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: cars_car_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.cars_car_id_seq
@@ -218,17 +218,17 @@ CREATE SEQUENCE public.cars_car_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.cars_car_id_seq OWNER TO postgres;
+ALTER TABLE public.cars_car_id_seq OWNER TO petr_kuril;
 
 --
--- Name: cars_car_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: cars_car_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.cars_car_id_seq OWNED BY public.cars.car_id;
 
 
 --
--- Name: clients; Type: TABLE; Schema: public; Owner: postgres
+-- Name: clients; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.clients (
@@ -243,10 +243,10 @@ CREATE TABLE public.clients (
 );
 
 
-ALTER TABLE public.clients OWNER TO postgres;
+ALTER TABLE public.clients OWNER TO petr_kuril;
 
 --
--- Name: clients_client_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: clients_client_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.clients_client_id_seq
@@ -258,17 +258,17 @@ CREATE SEQUENCE public.clients_client_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.clients_client_id_seq OWNER TO postgres;
+ALTER TABLE public.clients_client_id_seq OWNER TO petr_kuril;
 
 --
--- Name: clients_client_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: clients_client_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.clients_client_id_seq OWNED BY public.clients.client_id;
 
 
 --
--- Name: contacts; Type: TABLE; Schema: public; Owner: postgres
+-- Name: contacts; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.contacts (
@@ -282,10 +282,10 @@ CREATE TABLE public.contacts (
 );
 
 
-ALTER TABLE public.contacts OWNER TO postgres;
+ALTER TABLE public.contacts OWNER TO petr_kuril;
 
 --
--- Name: contacts_contact_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: contacts_contact_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.contacts_contact_id_seq
@@ -297,17 +297,17 @@ CREATE SEQUENCE public.contacts_contact_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.contacts_contact_id_seq OWNER TO postgres;
+ALTER TABLE public.contacts_contact_id_seq OWNER TO petr_kuril;
 
 --
--- Name: contacts_contact_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: contacts_contact_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.contacts_contact_id_seq OWNED BY public.contacts.contact_id;
 
 
 --
--- Name: contracts; Type: TABLE; Schema: public; Owner: postgres
+-- Name: contracts; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.contracts (
@@ -321,10 +321,10 @@ CREATE TABLE public.contracts (
 );
 
 
-ALTER TABLE public.contracts OWNER TO postgres;
+ALTER TABLE public.contracts OWNER TO petr_kuril;
 
 --
--- Name: contracts_contract_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: contracts_contract_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.contracts_contract_id_seq
@@ -336,17 +336,17 @@ CREATE SEQUENCE public.contracts_contract_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.contracts_contract_id_seq OWNER TO postgres;
+ALTER TABLE public.contracts_contract_id_seq OWNER TO petr_kuril;
 
 --
--- Name: contracts_contract_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: contracts_contract_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.contracts_contract_id_seq OWNED BY public.contracts.contract_id;
 
 
 --
--- Name: drivers; Type: TABLE; Schema: public; Owner: postgres
+-- Name: drivers; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.drivers (
@@ -359,10 +359,10 @@ CREATE TABLE public.drivers (
 );
 
 
-ALTER TABLE public.drivers OWNER TO postgres;
+ALTER TABLE public.drivers OWNER TO petr_kuril;
 
 --
--- Name: drivers_applications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: drivers_applications; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.drivers_applications (
@@ -372,10 +372,10 @@ CREATE TABLE public.drivers_applications (
 );
 
 
-ALTER TABLE public.drivers_applications OWNER TO postgres;
+ALTER TABLE public.drivers_applications OWNER TO petr_kuril;
 
 --
--- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE public.drivers_applications ALTER COLUMN drivers_applications_id ADD GENERATED ALWAYS AS IDENTITY (
@@ -389,7 +389,7 @@ ALTER TABLE public.drivers_applications ALTER COLUMN drivers_applications_id ADD
 
 
 --
--- Name: drivers_driver_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: drivers_driver_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.drivers_driver_id_seq
@@ -401,17 +401,17 @@ CREATE SEQUENCE public.drivers_driver_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.drivers_driver_id_seq OWNER TO postgres;
+ALTER TABLE public.drivers_driver_id_seq OWNER TO petr_kuril;
 
 --
--- Name: drivers_driver_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: drivers_driver_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.drivers_driver_id_seq OWNED BY public.drivers.driver_id;
 
 
 --
--- Name: requisites; Type: TABLE; Schema: public; Owner: postgres
+-- Name: requisites; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.requisites (
@@ -426,10 +426,10 @@ CREATE TABLE public.requisites (
 );
 
 
-ALTER TABLE public.requisites OWNER TO postgres;
+ALTER TABLE public.requisites OWNER TO petr_kuril;
 
 --
--- Name: requisites_requisite_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: requisites_requisite_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.requisites_requisite_id_seq
@@ -441,17 +441,17 @@ CREATE SEQUENCE public.requisites_requisite_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.requisites_requisite_id_seq OWNER TO postgres;
+ALTER TABLE public.requisites_requisite_id_seq OWNER TO petr_kuril;
 
 --
--- Name: requisites_requisite_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: requisites_requisite_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.requisites_requisite_id_seq OWNED BY public.requisites.requisite_id;
 
 
 --
--- Name: routes; Type: TABLE; Schema: public; Owner: postgres
+-- Name: routes; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.routes (
@@ -463,10 +463,10 @@ CREATE TABLE public.routes (
 );
 
 
-ALTER TABLE public.routes OWNER TO postgres;
+ALTER TABLE public.routes OWNER TO petr_kuril;
 
 --
--- Name: routes_route_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: routes_route_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.routes_route_id_seq
@@ -478,17 +478,17 @@ CREATE SEQUENCE public.routes_route_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.routes_route_id_seq OWNER TO postgres;
+ALTER TABLE public.routes_route_id_seq OWNER TO petr_kuril;
 
 --
--- Name: routes_route_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: routes_route_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.routes_route_id_seq OWNED BY public.routes.route_id;
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: petr_kuril
 --
 
 CREATE TABLE public.users (
@@ -500,10 +500,10 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+ALTER TABLE public.users OWNER TO petr_kuril;
 
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: petr_kuril
 --
 
 CREATE SEQUENCE public.users_id_seq
@@ -515,94 +515,94 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO postgres;
+ALTER TABLE public.users_id_seq OWNER TO petr_kuril;
 
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: petr_kuril
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: applications application_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: applications application_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.applications ALTER COLUMN application_id SET DEFAULT nextval('public.applications_application_id_seq'::regclass);
 
 
 --
--- Name: blacklist_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: blacklist_tokens id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.blacklist_tokens ALTER COLUMN id SET DEFAULT nextval('public.blacklist_tokens_id_seq'::regclass);
 
 
 --
--- Name: cargos cargo_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: cargos cargo_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cargos ALTER COLUMN cargo_id SET DEFAULT nextval('public.cargos_cargo_id_seq'::regclass);
 
 
 --
--- Name: cars car_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: cars car_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cars ALTER COLUMN car_id SET DEFAULT nextval('public.cars_car_id_seq'::regclass);
 
 
 --
--- Name: clients client_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: clients client_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.clients ALTER COLUMN client_id SET DEFAULT nextval('public.clients_client_id_seq'::regclass);
 
 
 --
--- Name: contacts contact_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: contacts contact_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contacts ALTER COLUMN contact_id SET DEFAULT nextval('public.contacts_contact_id_seq'::regclass);
 
 
 --
--- Name: contracts contract_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: contracts contract_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contracts ALTER COLUMN contract_id SET DEFAULT nextval('public.contracts_contract_id_seq'::regclass);
 
 
 --
--- Name: drivers driver_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: drivers driver_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.drivers ALTER COLUMN driver_id SET DEFAULT nextval('public.drivers_driver_id_seq'::regclass);
 
 
 --
--- Name: requisites requisite_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: requisites requisite_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.requisites ALTER COLUMN requisite_id SET DEFAULT nextval('public.requisites_requisite_id_seq'::regclass);
 
 
 --
--- Name: routes route_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: routes route_id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.routes ALTER COLUMN route_id SET DEFAULT nextval('public.routes_route_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
--- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
@@ -611,7 +611,7 @@ cf5f6f2aa36d
 
 
 --
--- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.applications (application_id, name, conclusion_date, delivery_route, shipper_id, receiver_id, status) FROM stdin;
@@ -626,7 +626,7 @@ COPY public.applications (application_id, name, conclusion_date, delivery_route,
 
 
 --
--- Data for Name: blacklist_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: blacklist_tokens; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.blacklist_tokens (id, token, blacklisted_on) FROM stdin;
@@ -634,7 +634,7 @@ COPY public.blacklist_tokens (id, token, blacklisted_on) FROM stdin;
 
 
 --
--- Data for Name: cargos; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: cargos; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.cargos (cargo_id, nomenclature, weight, application_id) FROM stdin;
@@ -646,7 +646,7 @@ COPY public.cargos (cargo_id, nomenclature, weight, application_id) FROM stdin;
 
 
 --
--- Data for Name: cars; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: cars; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.cars (car_id, weight, volume, model, category) FROM stdin;
@@ -659,7 +659,7 @@ COPY public.cars (car_id, weight, volume, model, category) FROM stdin;
 
 
 --
--- Data for Name: cars_applications; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: cars_applications; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.cars_applications (car_id, application_id, cars_applications_id) FROM stdin;
@@ -672,7 +672,7 @@ COPY public.cars_applications (car_id, application_id, cars_applications_id) FRO
 
 
 --
--- Data for Name: clients; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: clients; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.clients (client_id, passport_number, passport_series, first_name, last_name, middle_name, email, phone) FROM stdin;
@@ -685,7 +685,7 @@ COPY public.clients (client_id, passport_number, passport_series, first_name, la
 
 
 --
--- Data for Name: contacts; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: contacts; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.contacts (contact_id, first_name, last_name, middle_name, "position", organization, phone) FROM stdin;
@@ -700,7 +700,7 @@ COPY public.contacts (contact_id, first_name, last_name, middle_name, "position"
 
 
 --
--- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_id, application_id, requisite_id) FROM stdin;
@@ -713,7 +713,7 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 
 
 --
--- Data for Name: drivers; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: drivers; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, phone) FROM stdin;
@@ -727,7 +727,7 @@ COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, 
 
 
 --
--- Data for Name: drivers_applications; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: drivers_applications; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.drivers_applications (driver_id, application_id, drivers_applications_id) FROM stdin;
@@ -741,7 +741,7 @@ COPY public.drivers_applications (driver_id, application_id, drivers_application
 
 
 --
--- Data for Name: requisites; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: requisites; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS", bank_account) FROM stdin;
@@ -753,7 +753,7 @@ COPY public.requisites (requisite_id, bank_name, "BIK", "INN", "KPP", "KS", "RS"
 
 
 --
--- Data for Name: routes; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: routes; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.routes (route_id, delivery_address, shipping_address, distance, estimated_time) FROM stdin;
@@ -767,7 +767,7 @@ COPY public.routes (route_id, delivery_address, shipping_address, distance, esti
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: petr_kuril
 --
 
 COPY public.users (id, email, password, registered_on, admin) FROM stdin;
@@ -777,98 +777,98 @@ COPY public.users (id, email, password, registered_on, admin) FROM stdin;
 
 
 --
--- Name: applications_application_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: applications_application_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.applications_application_id_seq', 8, true);
 
 
 --
--- Name: blacklist_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: blacklist_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.blacklist_tokens_id_seq', 1, false);
 
 
 --
--- Name: cargos_cargo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: cargos_cargo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.cargos_cargo_id_seq', 6, true);
 
 
 --
--- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: cars_applications_cars_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.cars_applications_cars_applications_id_seq', 7, true);
 
 
 --
--- Name: cars_car_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: cars_car_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.cars_car_id_seq', 6, true);
 
 
 --
--- Name: clients_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: clients_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.clients_client_id_seq', 6, true);
 
 
 --
--- Name: contacts_contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: contacts_contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.contacts_contact_id_seq', 7, true);
 
 
 --
--- Name: contracts_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: contracts_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.contracts_contract_id_seq', 10, true);
 
 
 --
--- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: drivers_applications_drivers_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.drivers_applications_drivers_applications_id_seq', 10, true);
 
 
 --
--- Name: drivers_driver_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: drivers_driver_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.drivers_driver_id_seq', 14, true);
 
 
 --
--- Name: requisites_requisite_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: requisites_requisite_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.requisites_requisite_id_seq', 5, true);
 
 
 --
--- Name: routes_route_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: routes_route_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.routes_route_id_seq', 6, true);
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: petr_kuril
 --
 
 SELECT pg_catalog.setval('public.users_id_seq', 2, true);
 
 
 --
--- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.alembic_version
@@ -876,7 +876,7 @@ ALTER TABLE ONLY public.alembic_version
 
 
 --
--- Name: applications applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: applications applications_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.applications
@@ -884,7 +884,7 @@ ALTER TABLE ONLY public.applications
 
 
 --
--- Name: blacklist_tokens blacklist_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: blacklist_tokens blacklist_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.blacklist_tokens
@@ -892,7 +892,7 @@ ALTER TABLE ONLY public.blacklist_tokens
 
 
 --
--- Name: blacklist_tokens blacklist_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: blacklist_tokens blacklist_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.blacklist_tokens
@@ -900,7 +900,7 @@ ALTER TABLE ONLY public.blacklist_tokens
 
 
 --
--- Name: cargos cargos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cargos cargos_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cargos
@@ -908,7 +908,7 @@ ALTER TABLE ONLY public.cargos
 
 
 --
--- Name: cars_applications cars_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cars_applications cars_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cars_applications
@@ -916,7 +916,7 @@ ALTER TABLE ONLY public.cars_applications
 
 
 --
--- Name: cars cars_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cars cars_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cars
@@ -924,7 +924,7 @@ ALTER TABLE ONLY public.cars
 
 
 --
--- Name: clients clients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: clients clients_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.clients
@@ -932,7 +932,7 @@ ALTER TABLE ONLY public.clients
 
 
 --
--- Name: contacts contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contacts contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contacts
@@ -940,7 +940,7 @@ ALTER TABLE ONLY public.contacts
 
 
 --
--- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contracts
@@ -948,7 +948,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: drivers_applications drivers_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: drivers_applications drivers_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.drivers_applications
@@ -956,7 +956,7 @@ ALTER TABLE ONLY public.drivers_applications
 
 
 --
--- Name: drivers drivers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: drivers drivers_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.drivers
@@ -964,7 +964,7 @@ ALTER TABLE ONLY public.drivers
 
 
 --
--- Name: requisites requisites_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: requisites requisites_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.requisites
@@ -972,7 +972,7 @@ ALTER TABLE ONLY public.requisites
 
 
 --
--- Name: routes routes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: routes routes_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.routes
@@ -980,7 +980,7 @@ ALTER TABLE ONLY public.routes
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.users
@@ -988,7 +988,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.users
@@ -996,7 +996,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: applications applications_delivery_route_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: applications applications_delivery_route_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.applications
@@ -1004,7 +1004,7 @@ ALTER TABLE ONLY public.applications
 
 
 --
--- Name: applications applications_receiver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: applications applications_receiver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.applications
@@ -1012,7 +1012,7 @@ ALTER TABLE ONLY public.applications
 
 
 --
--- Name: applications applications_shipper_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: applications applications_shipper_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.applications
@@ -1020,7 +1020,7 @@ ALTER TABLE ONLY public.applications
 
 
 --
--- Name: cargos cargos_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cargos cargos_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cargos
@@ -1028,7 +1028,7 @@ ALTER TABLE ONLY public.cargos
 
 
 --
--- Name: cars_applications cars_applications_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cars_applications cars_applications_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cars_applications
@@ -1036,7 +1036,7 @@ ALTER TABLE ONLY public.cars_applications
 
 
 --
--- Name: cars_applications cars_applications_car_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: cars_applications cars_applications_car_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.cars_applications
@@ -1044,7 +1044,7 @@ ALTER TABLE ONLY public.cars_applications
 
 
 --
--- Name: contracts contracts_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contracts contracts_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contracts
@@ -1052,7 +1052,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: contracts contracts_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contracts contracts_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contracts
@@ -1060,7 +1060,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: contracts contracts_requisite_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: contracts contracts_requisite_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.contracts
@@ -1068,7 +1068,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: drivers_applications drivers_applications_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: drivers_applications drivers_applications_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.drivers_applications
@@ -1076,7 +1076,7 @@ ALTER TABLE ONLY public.drivers_applications
 
 
 --
--- Name: drivers_applications drivers_applications_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: drivers_applications drivers_applications_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: petr_kuril
 --
 
 ALTER TABLE ONLY public.drivers_applications
@@ -1084,6 +1084,6 @@ ALTER TABLE ONLY public.drivers_applications
 
 
 --
--- PostgreSQL database dump complete
+-- petr_kurilQL database dump complete
 --
 
