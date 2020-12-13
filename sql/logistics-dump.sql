@@ -615,11 +615,11 @@ cf5f6f2aa36d
 --
 
 COPY public.applications (application_id, name, conclusion_date, delivery_route, shipper_id, receiver_id, status) FROM stdin;
-5	Доставка огромной коллекции разноцветных членов на присосках со встроенным вибратором	2020-10-23	3	2	2	active
-3	Дилдо (100 штук)	2020-11-30	2	4	4	active
-4	Joint запрос	2020-11-25	1	3	3	active
+5	Доставка перфораторов	2020-10-23	3	2	2	active
+3	Доставка досок (100 штук)	2020-11-30	2	4	4	active
+4	Доставка ручек	2020-11-25	1	3	3	active
 1	Доставка чего-то	2020-11-20	6	1	1	active
-2	Телевизор	2020-12-12	5	5	5	finished
+2	Доставка телевизоров	2020-12-12	5	5	5	finished
 7	wqeqasd	2020-11-25	3	2	2	active
 8	asdasd	2020-12-03	3	2	2	active
 \.
@@ -638,10 +638,10 @@ COPY public.blacklist_tokens (id, token, blacklisted_on) FROM stdin;
 --
 
 COPY public.cargos (cargo_id, nomenclature, weight, application_id) FROM stdin;
-1	Дилдо	156.23	3
+1	Перфоратор	156.23	3
 3	Телевизор	40	2
 4	Холодильник ЗИЛ	60	1
-2	Joint	0.17	4
+2	Ручка	0.17	4
 \.
 
 
@@ -678,8 +678,8 @@ COPY public.cars_applications (car_id, application_id, cars_applications_id) FRO
 COPY public.clients (client_id, passport_number, passport_series, first_name, last_name, middle_name, email, phone) FROM stdin;
 2	5819	499601	Евстрахий	Полено	Петрович	EfstrahTheLog@mail.ru	79162185692
 1	4526	588761	Афонт	Семендяев	Константинович	afont@gmail.com	79854751892
-3	4478	512485	Аббоссали	Мовсисян	Мунарбекович	abbossali1976@mail.ru	79856832385
-4	7613	899417	Бибиб	Бердымухамедоф	Мяликгулыевич	dark_knight@vostok.com	79253859851
+3	4478	512485	Иван	Петров	Петрович	petrov1976@mail.ru	79856832385
+4	7613	899417	Кирилл	Романов	Андреев	dark_knight@vostok.com	79253859851
 6	4478	499601	asdfasdf	asdf	wpoierhs	test@mail.ru	79856692385
 \.
 
@@ -689,13 +689,13 @@ COPY public.clients (client_id, passport_number, passport_series, first_name, la
 --
 
 COPY public.contacts (contact_id, first_name, last_name, middle_name, "position", organization, phone) FROM stdin;
-3	Гипопотам	Патопов	Потапович	Директор	ООО "Резервуар"	89851177813
-4	Зевала	Отрыжкин	Алексеевич	Проходимец	ОПГ "Восточное"	89161762445
+3	Андрей	Василенко	Потапович	Директор	ООО "Резервуар"	89851177813
+4	Максим	Канаев	Алексеевич	Проходимец	ОПГ "Восточное"	89161762445
 5	Владлен	Баррикадович	Ульянов	Революционер	\N	89855623891
 2	Артём\n	Студнев	Викторович\n	Сторож	\N	89165069855
 1	Максим	Бобров\n	Петрович	Лесоруб	\N	89160482409
 7	Олег	Капустин	Семёнович	Разнорабочий	\N	89168088379
-6	Джо-Биб	Маглиб	Младший	Налётчик	\N	89810978019
+6	Артем	Одницов	Петрович	\N	89810978019
 \.
 
 
@@ -717,12 +717,12 @@ COPY public.contracts (contract_id, conclusion_date, cost, payment_type, client_
 --
 
 COPY public.drivers (driver_id, first_name, last_name, middle_name, categories, phone) FROM stdin;
-10	Абдумажит	Вахобович	Мухмагомедович	{'B','D','E'}	79168684849
-11	Срапион	Мовсисян	Ваники	{'B','D'}	89858591451
+10	Иванов	Петр	Петрович	{'B','D','E'}	79168684849
+11	Глеб	Иванов	Петрович	{'B','D'}	89858591451
 12	awrq	qwrqw	qweqweq	{'B','E'}	74129581499
-2	Атманда	Пивницкий	Мурзоевич	{'B','D','E','F'}	79997482464
-8	Пётр	Водило	Азбекович	{'A','B','D'}	79164152616
-9	Хайитбой	Зокиржон угли	Хамзанович	{'A','B','D','E','F'}	79259569153
+2	Николай	Пивницкий	Петрович	{'B','D','E','F'}	79997482464
+8	Пётр	Водило	Андреевич	{'A','B','D'}	79164152616
+9	Руслан	Василенко	Петрович	{'A','B','D','E','F'}	79259569153
 \.
 
 
