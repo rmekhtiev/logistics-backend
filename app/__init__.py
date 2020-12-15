@@ -10,4 +10,4 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-from app import routes, models, api  # noqa: E402
+from app import routes, models, api, auth  # noqa: E402
