@@ -1,10 +1,17 @@
+from flask_restful import marshal_with
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Application, Contact, Route
 from app.api.api_classes import db, datetime
+from flask_restful_swagger import swagger
+from app.api.api_documentation.ApplicationItem import ApplicationItem
 
 
 # Список всех заявок
 class Applications(Resource):
+    """
+    Applications describing
+    """
     # Настройка запроса request и его полей
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -21,6 +28,23 @@ class Applications(Resource):
 
     # Выдать список всех объектов типа Application
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get an applications list',
+        summary="get all applications",
+        nickname="Applications GET",
+        responseClass=ApplicationItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         applications_list = Application.query.all()
         data = Application.to_dict_list(applications_list)
@@ -28,6 +52,33 @@ class Applications(Resource):
 
     # Добавить новый объект типа Application
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create an application',
+        summary="",
+        nickname="Applications POST",
+        responseClass=ApplicationItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ApplicationItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 
@@ -56,4 +107,4 @@ class Applications(Resource):
         application.from_dict(data)
         db.session.add(application)
         db.session.commit()
-        return {'data': application.to_dict(), 'message': "Заявка успешно создана"}, 200
+        return {'data': application.to_dict(), 'message': "Заявка успешно создана"}, 201
