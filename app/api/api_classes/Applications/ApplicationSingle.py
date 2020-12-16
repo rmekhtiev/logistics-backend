@@ -1,7 +1,9 @@
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Application, Contact, Route
 from app.api.api_classes import db
+from app.api.api_documentation.ApplicationItem import ApplicationItem
 from app.api.extensions import compare
+from flask_restful_swagger import swagger
 
 
 # Одна конкретная заявка
@@ -19,6 +21,30 @@ class ApplicationSingle(Resource):
 
     # Получить объект Application
     # noinspection PyMethodMayBeStatic
+    """@swagger.operation(
+        notes='get an applications list',
+        summary="",
+        nickname="Applications GET",
+        responseClass=ApplicationItem.__name__,
+        parameters=[
+            {
+                "application_id": {
+                    "type": "integer",
+                    "required": "true"
+                }
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )"""
     def get(self, application_id):
         application = Application.query.get_or_404(application_id)
         data = application.to_dict()
@@ -66,6 +92,30 @@ class ApplicationSingle(Resource):
 
     # Удалить объект Application
     # noinspection PyMethodMayBeStatic
+    """@swagger.operation(
+        notes='delete an application',
+        summary="delete an application",
+        nickname="Applications DELETE",
+        responseClass=ApplicationItem.__name__,
+        parameters=[
+            {
+                "application_id": {
+                    "type": "integer",
+                    "required": "true"
+                }
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )"""
     def delete(self, application_id):
         application = Application.query.get_or_404(application_id)
 

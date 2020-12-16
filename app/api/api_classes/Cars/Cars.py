@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Car
 from app.api.api_classes import db
 
 
 # Все машины
+from app.api.api_documentation.CarItem import CarItem
+
+
 class Cars(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -20,6 +25,23 @@ class Cars(Resource):
 
     # Выдать список всех объектов Car
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a cars list',
+        summary="",
+        nickname="Cars GET",
+        responseClass=CarItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         cars_list = Car.query.all()
         data = Car.to_dict_list(cars_list)
@@ -27,6 +49,33 @@ class Cars(Resource):
 
     # Создать новый объект Car
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a car',
+        summary="",
+        nickname="Cars POST",
+        responseClass=CarItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": CarItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 

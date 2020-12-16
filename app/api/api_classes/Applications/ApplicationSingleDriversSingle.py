@@ -1,12 +1,44 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource
 from app.api.api_classes import Application, Driver
 from app.api.api_classes import db
 
 
 # Конкретный водитель у конкретной заявки
+from app.api.api_documentation.ApplicationItem import ApplicationItem
+
+
 class ApplicationSingleDriverSingle(Resource):
     # прикрепить к данной Application объект Driver
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create an application',
+        summary="",
+        nickname="ApplicationSingleDriverSingle POST",
+        responseClass=ApplicationItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ApplicationItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self, application_id, driver_id):
         app = Application.query.get_or_404(application_id)
         driver = Driver.query.get_or_404(driver_id)

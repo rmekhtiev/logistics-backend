@@ -1,6 +1,9 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Route, Application
 from app.api.api_classes import db
+from app.api.api_documentation.RouteItem import RouteItem
 from app.api.extensions import compare
 
 
@@ -17,6 +20,23 @@ class RouteSingle(Resource):
 
     # Получить объект Route
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a routes list',
+        summary="",
+        nickname="Routes GET",
+        responseClass=RouteItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, route_id):
         route = Route.query.get_or_404(route_id)
         data = route.to_dict()
@@ -24,6 +44,33 @@ class RouteSingle(Resource):
 
     # Внести изменения в объект Route
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a route',
+        summary="",
+        nickname="Routes POST",
+        responseClass=RouteItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": RouteItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def put(self, route_id):
         route = Route.query.get_or_404(route_id)
         data = self.parser.parse_args()

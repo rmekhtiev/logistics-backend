@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Client
 from app.api.api_classes import db
 
 
 # Список всех клиентов
+from app.api.api_documentation.ClientItem import ClientItem
+
+
 class Clients(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -24,6 +29,23 @@ class Clients(Resource):
 
     # Выдать список всех объектов Client
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a clients list',
+        summary="",
+        nickname="Clients GET",
+        responseClass=ClientItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         clients_list = Client.query.all()
         data = Client.to_dict_list(clients_list)
@@ -31,6 +53,33 @@ class Clients(Resource):
 
     # Создать новый объект Client
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a client',
+        summary="",
+        nickname="Clients POST",
+        responseClass=ClientItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ClientItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 

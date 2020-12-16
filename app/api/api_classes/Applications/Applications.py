@@ -30,7 +30,7 @@ class Applications(Resource):
     # noinspection PyMethodMayBeStatic
     @swagger.operation(
         notes='get an applications list',
-        summary="get all applications",
+        summary="",
         nickname="Applications GET",
         responseClass=ApplicationItem.__name__,
         parameters=[],

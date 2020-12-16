@@ -12,8 +12,7 @@ class ApplicationItem:
         },
         'attributes': {
             'name': {
-                'type': 'integer',
-                'format': 'int64',
+                'type': 'string',
                 'required': True
             },
             'conclusion_date': {

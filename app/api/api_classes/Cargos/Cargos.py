@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Cargo, Application
 from app.api.api_classes import db
 
 
 # Список всех грузов
+from app.api.api_documentation.CargoItem import CargoItem
+
+
 class Cargos(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -17,6 +22,23 @@ class Cargos(Resource):
 
     # Выдать список всех объектов Cargo
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a cargos list',
+        summary="",
+        nickname="Cargos GET",
+        responseClass=CargoItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         cargos_list = Cargo.query.all()
         data = Cargo.to_dict_list(cargos_list)
@@ -24,6 +46,33 @@ class Cargos(Resource):
 
     # Создать новый объект Cargo
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a cargo',
+        summary="",
+        nickname="Cargos POST",
+        responseClass=CargoItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": CargoItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 

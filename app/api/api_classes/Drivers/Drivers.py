@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Driver
 from app.api.api_classes import db
 
 
 # Все водители
+from app.api.api_documentation.DriverItem import DriverItem
+
+
 class Drivers(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -22,6 +27,23 @@ class Drivers(Resource):
 
     # Выдать список всех объектов Driver
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a drivers list',
+        summary="",
+        nickname="Drivers GET",
+        responseClass=DriverItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         drivers_list = Driver.query.all()
         data = Driver.to_dict_list(drivers_list)
@@ -29,6 +51,33 @@ class Drivers(Resource):
 
     # Создать новый объект Driver
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a driver',
+        summary="",
+        nickname="Drivers POST",
+        responseClass=DriverItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": DriverItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 

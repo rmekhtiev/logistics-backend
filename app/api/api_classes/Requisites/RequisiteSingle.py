@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Requisite
 from app.api.api_classes import db
 
 
 # Один реквизит
+from app.api.api_documentation.RequisiteItem import RequisiteItem
+
+
 class RequisiteSingle(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -19,12 +24,56 @@ class RequisiteSingle(Resource):
 
     # Получить объект Requisite
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a requisites list',
+        summary="",
+        nickname="Requisites GET",
+        responseClass=RequisiteItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, requisite_id):
         data = Requisite.query.get_or_404(requisite_id).to_dict()
         return {'data': data}, 200
 
     # Внести изменения в объект Requisite
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a requisite',
+        summary="",
+        nickname="Requisites POST",
+        responseClass=RequisiteItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": RequisiteItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def put(self, requisite_id):
         requisite = Requisite.query.get_or_404(requisite_id)
         data = self.parser.parse_args()

@@ -1,6 +1,9 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Client, Contract, Application, Requisite
 from app.api.api_classes import db
+from app.api.api_documentation.ContractItem import ContractItem
 from app.api.extensions import compare
 
 
@@ -20,12 +23,56 @@ class ContractSingle(Resource):
 
     # Получить объект Contract
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a contracts list',
+        summary="",
+        nickname="Contracts GET",
+        responseClass=ContractItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, contract_id):
         contract = Contract.query.get_or_404(contract_id)
         return {'data': contract.to_dict()}, 200
 
     # Внести изменения в объект Contract
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a contract',
+        summary="",
+        nickname="Contracts POST",
+        responseClass=ContractItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ContractItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def put(self, contract_id):
         contract = Contract.query.get_or_404(contract_id)
         data = self.parser.parse_args()

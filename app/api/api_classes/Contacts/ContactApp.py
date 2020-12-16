@@ -1,11 +1,33 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource
 from app.api.api_classes import Contact
 
 
 # Информация о том какой груз (заявку) ожидает контакт
+from app.api.api_documentation.ContactItem import ContactItem
+
+
 class ContactApp(Resource):
     # Получить объект Application from Contact
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a contacts list',
+        summary="",
+        nickname="Contacts GET",
+        responseClass=ContactItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, contact_id):
         contact = Contact.query.get_or_404(contact_id)
 

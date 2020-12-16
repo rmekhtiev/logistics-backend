@@ -1,6 +1,9 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Contact, Client
 from app.api.api_classes import db
+from app.api.api_documentation.ContactItem import ContactItem
 from app.api.extensions import compare
 
 
@@ -19,6 +22,23 @@ class ContactSingle(Resource):
 
     # Получить объект Contact
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a contacts list',
+        summary="",
+        nickname="Contacts GET",
+        responseClass=ContactItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, contact_id):
         contact = Contact.query.get_or_404(contact_id)
         data = contact.to_dict()
@@ -26,6 +46,33 @@ class ContactSingle(Resource):
 
     # Внести изменения в объект Contact
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a contact',
+        summary="",
+        nickname="Contacts POST",
+        responseClass=ContactItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ContactItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def put(self, contact_id):
         contact = Contact.query.get_or_404(contact_id)
         data = self.parser.parse_args()

@@ -1,9 +1,14 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Client, Contract, Application, Requisite
 from app.api.api_classes import db, datetime
 
 
 # Список всех контрактов
+from app.api.api_documentation.ContractItem import ContractItem
+
+
 class Contracts(Resource):
     # Настройка запроса request и его полей
     def __init__(self):
@@ -22,6 +27,23 @@ class Contracts(Resource):
 
     # Выдать список всех объектов типа Contract
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a contracts list',
+        summary="",
+        nickname="Contracts GET",
+        responseClass=ContractItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self):
         contracts_list = Contract.query.all()
         data = Contract.to_dict_list(contracts_list)
@@ -29,6 +51,33 @@ class Contracts(Resource):
 
     # Добавить новый объект типа Contract
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='create a contract',
+        summary="",
+        nickname="Contracts POST",
+        responseClass=ContractItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": ContractItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Created"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def post(self):
         data = self.parser.parse_args()
 

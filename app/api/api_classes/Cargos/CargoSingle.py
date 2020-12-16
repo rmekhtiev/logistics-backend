@@ -1,6 +1,9 @@
+from flask_restful_swagger import swagger
+
 from app.api.api_classes import Resource, reqparse
 from app.api.api_classes import Cargo, Application
 from app.api.api_classes import db
+from app.api.api_documentation.CargoItem import CargoItem
 from app.api.extensions import compare
 
 
@@ -16,6 +19,23 @@ class CargoSingle(Resource):
 
     # Получить объект Cargo
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='get a cargos list',
+        summary="",
+        nickname="Cargos GET",
+        responseClass=CargoItem.__name__,
+        parameters=[],
+        responseMessages=[
+            {
+                "code": 200,
+                "message": "Success"
+            },
+            {
+                "code": 404,
+                "message": "Not Found"
+            }
+        ]
+    )
     def get(self, cargo_id):
         cargo = Cargo.query.get_or_404(cargo_id)
         data = cargo.to_dict()
@@ -23,6 +43,33 @@ class CargoSingle(Resource):
 
     # Внести изменения в объект Cargo
     # noinspection PyMethodMayBeStatic
+    @swagger.operation(
+        notes='edit cargo',
+        summary="",
+        nickname="CargoSingle POST",
+        responseClass=CargoItem.__name__,
+        parameters=[
+            {
+                "allowMultiple": False,
+                "dataType": "ApplicationItem",
+                "description": "An Application item",
+                "name": "body",
+                "paramType": "body",
+                "properties": CargoItem.properties,
+                "required": True
+            }
+        ],
+        responseMessages=[
+            {
+                "code": 201,
+                "message": "Edited"
+            },
+            {
+                "code": 405,
+                "message": "Invalid input"
+            }
+        ]
+    )
     def put(self, cargo_id):
         cargo = Cargo.query.get_or_404(cargo_id)
         data = self.parser.parse_args()
