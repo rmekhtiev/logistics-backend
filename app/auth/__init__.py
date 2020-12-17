@@ -9,3 +9,5 @@ bcrypt = Bcrypt(app)
 from app.auth.views.bluprint_routes import auth_blueprint  # noqa: E402
 
 app.register_blueprint(auth_blueprint)
+
+from app.auth import oAuth2 # noqa
